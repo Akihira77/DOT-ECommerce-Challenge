@@ -1,5 +1,5 @@
 using System.Text.Json.Serialization;
-using ECommerce;
+using ECommerce.Router;
 using ECommerce.Service;
 using ECommerce.Store;
 using Microsoft.AspNetCore.HttpLogging;
@@ -19,10 +19,12 @@ builder.Services.AddDbContext<ApplicationDbContext>(o =>
 
 builder.Services.Configure<Microsoft.AspNetCore.Http.Json.JsonOptions>(options => options.SerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles);
 builder.Services.AddAntiforgery();
+
 builder.Services.AddScoped<JwtService>();
 builder.Services.AddScoped<PasswordService>();
 builder.Services.AddScoped<ICustomerService, CustomerService>();
 builder.Services.AddScoped<IProductCategoryService, ProductCategoryService>();
+builder.Services.AddScoped<IProductService, ProductService>();
 
 var app = builder.Build();
 

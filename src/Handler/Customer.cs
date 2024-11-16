@@ -44,7 +44,8 @@ public static class CustomerHandler
         }
     }
 
-    public static async Task<Results<Ok<Customer>, UnauthorizedHttpResult, BadRequest<string>>> FindMyCustomerInfo(HttpContext httpCtx,
+    public static async Task<Results<Ok<Customer>, UnauthorizedHttpResult, BadRequest<string>>> FindMyCustomerInfo(
+        HttpContext httpCtx,
         [FromServices] ICustomerService customerSvc)
     {
         try
@@ -88,7 +89,8 @@ public static class CustomerHandler
         }
     }
 
-    public static async Task<Results<Created<Customer>, BadRequest<string>>> CreateCustomer(HttpContext httpCtx,
+    public static async Task<Results<Created<Customer>, BadRequest<string>>> CreateCustomer(
+        HttpContext httpCtx,
         [FromServices] ICustomerService customerSvc,
         [FromBody] CreateCustomerAndCustomerAddressDTO data)
     {
@@ -105,7 +107,8 @@ public static class CustomerHandler
         }
     }
 
-    public static async Task<Results<Ok<Customer>, NotFound<string>, BadRequest<string>>> Login(HttpContext httpCtx,
+    public static async Task<Results<Ok<Customer>, NotFound<string>, BadRequest<string>>> Login(
+        HttpContext httpCtx,
         [FromServices] ICustomerService customerSvc,
         [FromServices] JwtService jwtSvc,
         [FromBody] LoginDTO data)
@@ -136,7 +139,8 @@ public static class CustomerHandler
         }
     }
 
-    public static async Task<Results<Ok<Customer>, NotFound<string>, BadRequest<string>>> EditCustomer(HttpContext httpCtx,
+    public static async Task<Results<Ok<Customer>, NotFound<string>, BadRequest<string>>> EditCustomer(
+        HttpContext httpCtx,
         [FromServices] ICustomerService customerSvc,
         [FromBody] EditCustomerAndCustomerAddressDTO data)
     {
@@ -158,7 +162,8 @@ public static class CustomerHandler
         }
     }
 
-    public static async Task<Results<Created<string>, NotFound<string>, BadRequest<string>>> AddCustomerAddress(HttpContext httpCtx,
+    public static async Task<Results<Created<string>, NotFound<string>, BadRequest<string>>> AddCustomerAddress(
+        HttpContext httpCtx,
         [FromServices] ICustomerService customerSvc,
         [FromBody] UpsertCustomerAddressDTO addrData)
     {
@@ -185,23 +190,13 @@ public static class CustomerHandler
         }
     }
 
-    public static async Task<Results<Ok<Customer>, NotFound<string>, BadRequest<string>, ForbidHttpResult>> UpgradeCustomerToAdmin(HttpContext httpCtx,
+    public static async Task<Results<Ok<Customer>, NotFound<string>, BadRequest<string>, ForbidHttpResult>> UpgradeCustomerToAdmin(
+        HttpContext httpCtx,
         [FromServices] ICustomerService customerSvc,
         [FromRoute] int customerId)
     {
         try
         {
-            var current_user = httpCtx.Items["current_user"] as Customer;
-            if (current_user is null)
-            {
-                return TypedResults.BadRequest("User is not authenticated. Please Login first");
-            }
-
-            if (current_user.Role != UserRoles.ADMIN)
-            {
-                return TypedResults.Forbid();
-            }
-
             var c = await customerSvc.FindCustomerById(customerId, true);
             if (c is null)
             {
@@ -219,7 +214,8 @@ public static class CustomerHandler
     }
 
 
-    public static async Task<Results<Ok<string>, NotFound<string>, BadRequest<string>, ForbidHttpResult>> DeleteCustomer(HttpContext httpCtx,
+    public static async Task<Results<Ok<string>, NotFound<string>, BadRequest<string>, ForbidHttpResult>> DeleteCustomer(
+        HttpContext httpCtx,
         [FromServices] ICustomerService customerSvc,
         [FromRoute] int customerId)
     {

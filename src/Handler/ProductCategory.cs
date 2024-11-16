@@ -24,7 +24,8 @@ public static class ProductCategoryHandler
         }
     }
 
-    public static async Task<Results<Ok<ProductCategory>, NotFound<string>, BadRequest<string>>> FindProductCategoryById([FromServices] IProductCategoryService productCategorySvc,
+    public static async Task<Results<Ok<ProductCategory>, NotFound<string>, BadRequest<string>>> FindProductCategoryById(
+        [FromServices] IProductCategoryService productCategorySvc,
         [FromRoute] int id,
         [FromQuery] bool includeProducts = false)
     {

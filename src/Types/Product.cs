@@ -7,14 +7,18 @@ public class Product
 {
     [Key]
     public int Id { get; set; }
+    public required string Name { get; set; }
     [Column(TypeName = "decimal(18,4)")]
     public decimal Price { get; set; }
     public uint Stock { get; set; }
     public string Description { get; set; }
     public DateTime CreatedAt { get; set; }
 
-    public int? CategoryId { get; set; }
-    public ProductCategory? Category { get; set; }
+    public int? ProductCategoryId { get; set; }
+    public ProductCategory? ProductCategory { get; set; }
 
     public ICollection<CustomerCart> CustomerCarts { get; set; }
 }
+
+public record CreateProductDTO(string name, decimal price, uint stock, string description, int productCategoryId);
+public record EditProductDTO(string name, decimal price, uint stock, string description);

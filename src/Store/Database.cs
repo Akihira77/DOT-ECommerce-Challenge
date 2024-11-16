@@ -47,9 +47,9 @@ public class ApplicationDbContext : DbContext
 
         //TODO: THINK AGAIN!
         modelBuilder.Entity<Product>().
-            HasOne<ProductCategory>(pc => pc.Category).
+            HasOne<ProductCategory>(pc => pc.ProductCategory).
             WithMany(c => c.Products).
-            HasForeignKey(pc => pc.CategoryId).
+            HasForeignKey(pc => pc.ProductCategoryId).
             OnDelete(DeleteBehavior.SetNull);
 
         modelBuilder.Entity<Order>().
