@@ -6,11 +6,11 @@ namespace ECommerce.Service;
 
 public interface IProductCategoryService
 {
-    Task<IEnumerable<ProductCategory>> FindProductCategories(bool track);
-    Task<ProductCategory?> FindProductCategoryById(int id, bool track);
+    Task<IEnumerable<ProductCategory>> FindProductCategories(bool track, bool includeProducts);
+    Task<ProductCategory?> FindProductCategoryById(int id, bool track, bool includeProducts);
     Task<ProductCategory?> CreateProductCategory(UpsertProductCategoryDTO data);
     Task<ProductCategory?> EditProductCategory(UpsertProductCategoryDTO data, ProductCategory pc);
-    Task<bool> DeleteProductCategory(int id);
+    Task<bool> DeleteProductCategory(ProductCategory pc);
 }
 
 public class ProductCategoryService : IProductCategoryService
@@ -30,6 +30,7 @@ public class ProductCategoryService : IProductCategoryService
             {
                 Name = data.name,
                 Description = data.description,
+                ProductCount = 0,
             };
 
             await this.ctx.ProductCategories.AddAsync(pc);
@@ -44,9 +45,18 @@ public class ProductCategoryService : IProductCategoryService
         }
     }
 
-    public Task<bool> DeleteProductCategory(int id)
+    public async Task<bool> DeleteProductCategory(ProductCategory pc)
     {
-        throw new NotImplementedException();
+        try
+        {
+            this.ctx.ProductCategories.Remove(pc);
+            return await this.ctx.SaveChangesAsync() > 0;
+        }
+        catch (System.Exception err)
+        {
+            Console.WriteLine($"There are errors {err}");
+            return false;
+        }
     }
 
     public async Task<ProductCategory?> EditProductCategory(UpsertProductCategoryDTO data, ProductCategory pc)
@@ -68,7 +78,7 @@ public class ProductCategoryService : IProductCategoryService
         }
     }
 
-    public async Task<IEnumerable<ProductCategory>> FindProductCategories(bool track)
+    public async Task<IEnumerable<ProductCategory>> FindProductCategories(bool track, bool includeProducts)
     {
         try
         {
@@ -77,6 +87,11 @@ public class ProductCategoryService : IProductCategoryService
             if (!track)
             {
                 query = query.AsNoTracking();
+            }
+
+            if (includeProducts)
+            {
+                query = query.Include(pc => pc.Products);
             }
 
             return await query.ToListAsync();
@@ -88,7 +103,7 @@ public class ProductCategoryService : IProductCategoryService
         }
     }
 
-    public async Task<ProductCategory?> FindProductCategoryById(int id, bool track)
+    public async Task<ProductCategory?> FindProductCategoryById(int id, bool track, bool includeProducts)
     {
         try
         {
@@ -98,6 +113,12 @@ public class ProductCategoryService : IProductCategoryService
             {
                 query = query.AsNoTracking();
             }
+
+            if (includeProducts)
+            {
+                query = query.Include(pc => pc.Products);
+            }
+
 
             return await query.FirstOrDefaultAsync(pc => pc.Id.Equals(id));
         }

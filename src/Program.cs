@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using ECommerce;
 using ECommerce.Service;
 using ECommerce.Store;
@@ -16,6 +17,7 @@ builder.Services.AddDbContext<ApplicationDbContext>(o =>
     o.UseSqlServer(builder.Configuration.GetConnectionString("SQLServer"));
 });
 
+builder.Services.Configure<Microsoft.AspNetCore.Http.Json.JsonOptions>(options => options.SerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles);
 builder.Services.AddAntiforgery();
 builder.Services.AddScoped<JwtService>();
 builder.Services.AddScoped<PasswordService>();

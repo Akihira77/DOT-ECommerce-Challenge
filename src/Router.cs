@@ -17,23 +17,32 @@ public static class Router
 
     private static void CustomerRouter(this RouteGroupBuilder r)
     {
+        //INFO: NO NEED AUTHENTICATION
         r.MapGet("", CustomerHandler.FindCustomers);
         r.MapGet("/id/{id}", CustomerHandler.FindCustomerById);
         r.MapGet("/name-or-email/{str}", CustomerHandler.FindCustomerByNameOrEmail);
         r.MapPost("/register", CustomerHandler.CreateCustomer);
         r.MapPost("/login", CustomerHandler.Login);
-        r.MapPatch("", CustomerHandler.EditCustomer);
 
+        //INFO: NEED AUTHENTICATION
+        r.MapGet("/my-info", CustomerHandler.FindMyCustomerInfo);
+        r.MapPatch("", CustomerHandler.EditCustomer);
+        r.MapPost("/addresses", CustomerHandler.AddCustomerAddress);
+
+        //INFO: ADMIN ONLY
         r.MapPatch("/admin/upgrade-customer/{customerId}", CustomerHandler.UpgradeCustomerToAdmin);
         r.MapDelete("/admin/{customerId}", CustomerHandler.DeleteCustomer);
     }
 
     private static void ProductCategoryRouter(this RouteGroupBuilder r)
     {
+        //INFO: NO NEED AUTHENTICATION
         r.MapGet("", ProductCategoryHandler.FindProductCategories);
         r.MapGet("/{id}", ProductCategoryHandler.FindProductCategoryById);
-        r.MapPost("", ProductCategoryHandler.CreateProductCategory);
-        r.MapPatch("", ProductCategoryHandler.EditProductCategory);
-        r.MapDelete("", ProductCategoryHandler.DeleteProductCategory);
+
+        //INFO: ADMIN ONLY
+        r.MapPost("/admin", ProductCategoryHandler.CreateProductCategory);
+        r.MapPatch("/admin/{categoryId}", ProductCategoryHandler.EditProductCategory);
+        r.MapDelete("/admin/{categoryId}", ProductCategoryHandler.DeleteProductCategory);
     }
 }

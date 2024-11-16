@@ -8,11 +8,12 @@ namespace ECommerce.Handler;
 public static class ProductCategoryHandler
 {
     public static async Task<Results<Ok<IEnumerable<ProductCategory>>, BadRequest<string>>> FindProductCategories(
-            [FromServices] IProductCategoryService productCategorySvc)
+        [FromServices] IProductCategoryService productCategorySvc,
+        [FromQuery] bool includeProducts = false)
     {
         try
         {
-            var productCategories = await productCategorySvc.FindProductCategories(false);
+            var productCategories = await productCategorySvc.FindProductCategories(false, includeProducts);
 
             return TypedResults.Ok(productCategories);
         }
@@ -23,13 +24,13 @@ public static class ProductCategoryHandler
         }
     }
 
-    public static async Task<Results<Ok<ProductCategory>, NotFound<string>, BadRequest<string>>> FindProductCategoryById(
-        [FromServices] IProductCategoryService productCategorySvc,
-        [FromRoute] int id)
+    public static async Task<Results<Ok<ProductCategory>, NotFound<string>, BadRequest<string>>> FindProductCategoryById([FromServices] IProductCategoryService productCategorySvc,
+        [FromRoute] int id,
+        [FromQuery] bool includeProducts = false)
     {
         try
         {
-            var productCategory = await productCategorySvc.FindProductCategoryById(id, false);
+            var productCategory = await productCategorySvc.FindProductCategoryById(id, false, includeProducts);
             if (productCategory is null)
             {
                 return TypedResults.NotFound("Product Category did not found");
@@ -70,7 +71,7 @@ public static class ProductCategoryHandler
     {
         try
         {
-            var productCategory = await productCategorySvc.FindProductCategoryById(categoryId, false);
+            var productCategory = await productCategorySvc.FindProductCategoryById(categoryId, false, false);
             if (productCategory is null)
             {
                 return TypedResults.NotFound("Product Category did not found");
@@ -94,13 +95,13 @@ public static class ProductCategoryHandler
     {
         try
         {
-            var productCategory = await productCategorySvc.FindProductCategoryById(categoryId, false);
+            var productCategory = await productCategorySvc.FindProductCategoryById(categoryId, false, false);
             if (productCategory is null)
             {
                 return TypedResults.NotFound("Product Category did not found");
             }
 
-            var result = await productCategorySvc.DeleteProductCategory(categoryId);
+            var result = await productCategorySvc.DeleteProductCategory(productCategory);
             if (!result)
             {
                 return TypedResults.BadRequest("Deleting Product Category failed");

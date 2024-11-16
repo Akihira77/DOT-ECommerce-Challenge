@@ -41,4 +41,6 @@ public class CustomerCart
 // DTO excluding password
 public record LoginDTO(string email, string password);
 public record CreateCustomerDTO(string name, string email, string password);
+public record CreateCustomerAndCustomerAddressDTO(CreateCustomerDTO custData, UpsertCustomerAddressDTO? addrData);
 public record EditCustomerDTO(string name, string email, UserRoles role);
+public record EditCustomerAndCustomerAddressDTO(EditCustomerDTO custData, CustomerAddress? addrData);

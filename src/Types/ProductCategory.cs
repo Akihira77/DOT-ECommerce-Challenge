@@ -8,8 +8,10 @@ public class ProductCategory
     public int Id { get; set; }
     public required string Name { get; set; }
     public required string Description { get; set; }
+    public uint ProductCount { get; set; }
 
     public ICollection<Product> Products { get; set; }
 }
 
 public record UpsertProductCategoryDTO(string name, string description);
+public record FindProductCategoriesQueryDTO(bool products);

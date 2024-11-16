@@ -25,7 +25,7 @@ public static class CustomerHandler
 
     public static async Task<Results<Ok<Customer>, NotFound<string>, BadRequest<string>>> FindCustomerById(
             [FromServices] ICustomerService customerSvc,
-            int id)
+            [FromRoute] int id)
     {
         try
         {
@@ -44,9 +44,32 @@ public static class CustomerHandler
         }
     }
 
+    public static async Task<Results<Ok<Customer>, UnauthorizedHttpResult, BadRequest<string>>> FindMyCustomerInfo(HttpContext httpCtx,
+        [FromServices] ICustomerService customerSvc)
+    {
+        try
+        {
+            var current_user = httpCtx.Items["current_user"] as Customer;
+            if (current_user is null)
+            {
+                return TypedResults.Unauthorized();
+            }
+
+            var c = await customerSvc.FindCustomerById(current_user.Id, false);
+
+            return TypedResults.Ok(c);
+        }
+        catch (System.Exception err)
+        {
+            Console.WriteLine($"There are error {err}");
+            return TypedResults.BadRequest("Unexpected Error Happened.");
+        }
+    }
+
+
     public static async Task<Results<Ok<Customer>, NotFound<string>, BadRequest<string>>> FindCustomerByNameOrEmail(
         [FromServices] ICustomerService customerSvc,
-        string str)
+        [FromRoute] string str)
     {
         try
         {
@@ -65,15 +88,13 @@ public static class CustomerHandler
         }
     }
 
-    public static async Task<Results<Created<Customer>, BadRequest<string>>> CreateCustomer(
-            HttpContext httpCtx,
-            [FromServices] ICustomerService customerSvc,
-            [FromBody] CreateCustomerDTO data
-            )
+    public static async Task<Results<Created<Customer>, BadRequest<string>>> CreateCustomer(HttpContext httpCtx,
+        [FromServices] ICustomerService customerSvc,
+        [FromBody] CreateCustomerAndCustomerAddressDTO data)
     {
         try
         {
-            var c = await customerSvc.CreateCustomer(data);
+            var c = await customerSvc.CreateCustomer(data.custData, data.addrData);
 
             return TypedResults.Created(httpCtx.Request.Path, c);
         }
@@ -84,12 +105,10 @@ public static class CustomerHandler
         }
     }
 
-    public static async Task<Results<Ok<Customer>, NotFound<string>, BadRequest<string>>> Login(
-            HttpContext httpCtx,
-            [FromServices] ICustomerService customerSvc,
-            [FromServices] JwtService jwtSvc,
-            [FromBody] LoginDTO data
-            )
+    public static async Task<Results<Ok<Customer>, NotFound<string>, BadRequest<string>>> Login(HttpContext httpCtx,
+        [FromServices] ICustomerService customerSvc,
+        [FromServices] JwtService jwtSvc,
+        [FromBody] LoginDTO data)
     {
         try
         {
@@ -117,11 +136,9 @@ public static class CustomerHandler
         }
     }
 
-    public static async Task<Results<Ok<Customer>, NotFound<string>, BadRequest<string>>> EditCustomer(
-        HttpContext httpCtx,
+    public static async Task<Results<Ok<Customer>, NotFound<string>, BadRequest<string>>> EditCustomer(HttpContext httpCtx,
         [FromServices] ICustomerService customerSvc,
-        [FromBody] EditCustomerDTO data
-        )
+        [FromBody] EditCustomerAndCustomerAddressDTO data)
     {
         try
         {
@@ -131,8 +148,7 @@ public static class CustomerHandler
                 return TypedResults.BadRequest("User is not authenticated. Please Login first");
             }
 
-            var c = await customerSvc.EditCustomer(data, current_user);
-
+            var c = await customerSvc.EditCustomer(data.custData, current_user, data.addrData);
             return TypedResults.Ok(c);
         }
         catch (System.Exception err)
@@ -142,21 +158,57 @@ public static class CustomerHandler
         }
     }
 
-    public static async Task<Results<Ok<Customer>, NotFound<string>, BadRequest<string>>> UpgradeCustomerToAdmin(
-        HttpContext httpCtx,
+    public static async Task<Results<Created<string>, NotFound<string>, BadRequest<string>>> AddCustomerAddress(HttpContext httpCtx,
         [FromServices] ICustomerService customerSvc,
-        [FromRoute] int customerId
-        )
+        [FromBody] UpsertCustomerAddressDTO addrData)
     {
         try
         {
+            var current_user = httpCtx.Items["current_user"] as Customer;
+            if (current_user is null)
+            {
+                return TypedResults.BadRequest("User is not authenticated. Please Login first");
+            }
+
+            var c = await customerSvc.AddCustomerAddress(current_user.Id, addrData);
+            if (!c)
+            {
+                return TypedResults.BadRequest("Adding New Customer Address is failed");
+            }
+
+            return TypedResults.Created(httpCtx.Request.Path, "New Customer Address is successfully added");
+        }
+        catch (System.Exception err)
+        {
+            Console.WriteLine($"There are error {err}");
+            return TypedResults.BadRequest("Unexpected Error Happened.");
+        }
+    }
+
+    public static async Task<Results<Ok<Customer>, NotFound<string>, BadRequest<string>, ForbidHttpResult>> UpgradeCustomerToAdmin(HttpContext httpCtx,
+        [FromServices] ICustomerService customerSvc,
+        [FromRoute] int customerId)
+    {
+        try
+        {
+            var current_user = httpCtx.Items["current_user"] as Customer;
+            if (current_user is null)
+            {
+                return TypedResults.BadRequest("User is not authenticated. Please Login first");
+            }
+
+            if (current_user.Role != UserRoles.ADMIN)
+            {
+                return TypedResults.Forbid();
+            }
+
             var c = await customerSvc.FindCustomerById(customerId, true);
             if (c is null)
             {
                 return TypedResults.NotFound("User did not found");
             }
 
-            c = await customerSvc.EditCustomer(new EditCustomerDTO(c.Name, c.Email, UserRoles.ADMIN), c);
+            c = await customerSvc.EditCustomer(new EditCustomerDTO(c.Name, c.Email, UserRoles.ADMIN), c, null);
             return TypedResults.Ok(c);
         }
         catch (System.Exception err)
@@ -167,11 +219,9 @@ public static class CustomerHandler
     }
 
 
-    public static async Task<Results<Ok<string>, NotFound<string>, BadRequest<string>, ForbidHttpResult>> DeleteCustomer(
-            HttpContext httpCtx,
-            [FromServices] ICustomerService customerSvc,
-            [FromRoute] int customerId
-            )
+    public static async Task<Results<Ok<string>, NotFound<string>, BadRequest<string>, ForbidHttpResult>> DeleteCustomer(HttpContext httpCtx,
+        [FromServices] ICustomerService customerSvc,
+        [FromRoute] int customerId)
     {
         try
         {

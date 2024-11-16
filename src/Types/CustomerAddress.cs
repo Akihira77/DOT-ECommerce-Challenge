@@ -13,3 +13,5 @@ public class CustomerAddress
     public int CustomerId { get; set; }
     public Customer? Customer { get; set; }
 }
+
+public record UpsertCustomerAddressDTO(string country, string state, string fullAddress);
