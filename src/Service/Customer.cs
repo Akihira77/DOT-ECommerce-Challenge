@@ -35,7 +35,7 @@ public class CustomerService : ICustomerService
                 query = query.AsNoTracking();
             }
 
-            return await query.FirstOrDefaultAsync(c => c.Id == id);
+            return await query.FirstOrDefaultAsync(c => c.Id.Equals(id));
         }
         catch (System.Exception err)
         {

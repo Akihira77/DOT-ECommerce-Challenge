@@ -9,8 +9,10 @@ public static class Router
     {
         var api = app.MapGroup(BASE_PATH);
         var customerGroup = api.MapGroup("/customers");
+        var productCategoryGroup = api.MapGroup("/categories");
 
         customerGroup.CustomerRouter();
+        productCategoryGroup.ProductCategoryRouter();
     }
 
     private static void CustomerRouter(this RouteGroupBuilder r)
@@ -24,5 +26,14 @@ public static class Router
 
         r.MapPatch("/admin/upgrade-customer/{customerId}", CustomerHandler.UpgradeCustomerToAdmin);
         r.MapDelete("/admin/{customerId}", CustomerHandler.DeleteCustomer);
+    }
+
+    private static void ProductCategoryRouter(this RouteGroupBuilder r)
+    {
+        r.MapGet("", ProductCategoryHandler.FindProductCategories);
+        r.MapGet("/{id}", ProductCategoryHandler.FindProductCategoryById);
+        r.MapPost("", ProductCategoryHandler.CreateProductCategory);
+        r.MapPatch("", ProductCategoryHandler.EditProductCategory);
+        r.MapDelete("", ProductCategoryHandler.DeleteProductCategory);
     }
 }

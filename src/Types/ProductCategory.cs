@@ -11,3 +11,5 @@ public class ProductCategory
 
     public ICollection<Product> Products { get; set; }
 }
+
+public record UpsertProductCategoryDTO(string name, string description);
