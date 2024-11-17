@@ -31,7 +31,7 @@ public static class AuthenticationValidationMiddleware
             }
 
             Console.WriteLine($"Customer is not an ADMIN {current_user}");
-            return Results.Unauthorized();
+            return Results.StatusCode(StatusCodes.Status403Forbidden);
         };
     }
 

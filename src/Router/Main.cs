@@ -12,5 +12,6 @@ public static class Router
         api.MapGroup("/categories").RegisterProductCategoryRouter();
         api.MapGroup("/products").RegisterProductRouter();
         api.MapGroup("/carts").RegisterCustomerCartRouter();
+        api.MapGroup("/orders").RegisterOrderRouter();
     }
 }
