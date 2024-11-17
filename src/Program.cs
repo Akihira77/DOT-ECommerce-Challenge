@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+using ECommerce.Middleware;
 using ECommerce.Router;
 using ECommerce.Service;
 using ECommerce.Store;
@@ -32,6 +33,7 @@ var app = builder.Build();
 app.UseHttpLogging();
 app.UseAntiforgery();
 
+app.UseMiddleware<OperationCanceledMiddleware>();
 app.UseMiddleware<ExtractUserDataFromCookie>();
 app.MainRouter();
 

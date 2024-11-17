@@ -8,11 +8,15 @@ namespace ECommerce.Handler;
 public static class CustomerHandler
 {
     public static async Task<Results<Ok<IEnumerable<Customer>>, BadRequest<string>>> FindCustomers(
-            [FromServices] ICustomerService customerSvc)
+        CancellationToken ct,
+        [FromServices] ICustomerService customerSvc)
     {
         try
         {
-            var customers = await customerSvc.FindCustomers(false);
+            var cts = CancellationTokenSource.CreateLinkedTokenSource(ct);
+            cts.CancelAfter(TimeSpan.FromSeconds(2));
+
+            var customers = await customerSvc.FindCustomers(cts.Token, false);
 
             return TypedResults.Ok(customers);
         }
@@ -24,12 +28,16 @@ public static class CustomerHandler
     }
 
     public static async Task<Results<Ok<Customer>, NotFound<string>, BadRequest<string>>> FindCustomerById(
-            [FromServices] ICustomerService customerSvc,
-            [FromRoute] int id)
+        CancellationToken ct,
+        [FromServices] ICustomerService customerSvc,
+        [FromRoute] int id)
     {
         try
         {
-            var c = await customerSvc.FindCustomerById(id, false);
+            var cts = CancellationTokenSource.CreateLinkedTokenSource(ct);
+            cts.CancelAfter(TimeSpan.FromSeconds(2));
+
+            var c = await customerSvc.FindCustomerById(cts.Token, id, false);
             if (c is null)
             {
                 return TypedResults.NotFound("User did not found");
@@ -45,18 +53,22 @@ public static class CustomerHandler
     }
 
     public static async Task<Results<Ok<Customer>, UnauthorizedHttpResult, BadRequest<string>>> FindMyCustomerInfo(
+        CancellationToken ct,
         HttpContext httpCtx,
         [FromServices] ICustomerService customerSvc)
     {
         try
         {
+            var cts = CancellationTokenSource.CreateLinkedTokenSource(ct);
+            cts.CancelAfter(TimeSpan.FromSeconds(2));
+
             var current_user = httpCtx.Items["current_user"] as Customer;
             if (current_user is null)
             {
                 return TypedResults.Unauthorized();
             }
 
-            var c = await customerSvc.FindCustomerById(current_user.Id, false);
+            var c = await customerSvc.FindCustomerById(cts.Token, current_user.Id, false);
 
             return TypedResults.Ok(c);
         }
@@ -69,12 +81,16 @@ public static class CustomerHandler
 
 
     public static async Task<Results<Ok<Customer>, NotFound<string>, BadRequest<string>>> FindCustomerByNameOrEmail(
+        CancellationToken ct,
         [FromServices] ICustomerService customerSvc,
         [FromRoute] string str)
     {
         try
         {
-            var c = await customerSvc.FindCustomerByNameOrEmail(str, false);
+            var cts = CancellationTokenSource.CreateLinkedTokenSource(ct);
+            cts.CancelAfter(TimeSpan.FromSeconds(2));
+
+            var c = await customerSvc.FindCustomerByNameOrEmail(cts.Token, str, false);
             if (c is null)
             {
                 return TypedResults.NotFound("User did not found");
@@ -90,13 +106,17 @@ public static class CustomerHandler
     }
 
     public static async Task<Results<Created<Customer>, BadRequest<string>>> CreateCustomer(
+        CancellationToken ct,
         HttpContext httpCtx,
         [FromServices] ICustomerService customerSvc,
         [FromBody] CreateCustomerAndCustomerAddressDTO data)
     {
         try
         {
-            var c = await customerSvc.CreateCustomer(data.custData, data.addrData);
+            var cts = CancellationTokenSource.CreateLinkedTokenSource(ct);
+            cts.CancelAfter(TimeSpan.FromSeconds(2));
+
+            var c = await customerSvc.CreateCustomer(cts.Token, data.custData, data.addrData);
 
             return TypedResults.Created(httpCtx.Request.Path, c);
         }
@@ -108,6 +128,7 @@ public static class CustomerHandler
     }
 
     public static async Task<Results<Ok<Customer>, NotFound<string>, BadRequest<string>>> Login(
+        CancellationToken ct,
         HttpContext httpCtx,
         [FromServices] ICustomerService customerSvc,
         [FromServices] JwtService jwtSvc,
@@ -115,7 +136,10 @@ public static class CustomerHandler
     {
         try
         {
-            var c = await customerSvc.FindCustomerByNameOrEmail(data.email, false);
+            var cts = CancellationTokenSource.CreateLinkedTokenSource(ct);
+            cts.CancelAfter(TimeSpan.FromSeconds(2));
+
+            var c = await customerSvc.FindCustomerByNameOrEmail(cts.Token, data.email, false);
             if (c is null)
             {
                 return TypedResults.NotFound("User did not found");
@@ -140,19 +164,23 @@ public static class CustomerHandler
     }
 
     public static async Task<Results<Ok<Customer>, NotFound<string>, BadRequest<string>>> EditCustomer(
+        CancellationToken ct,
         HttpContext httpCtx,
         [FromServices] ICustomerService customerSvc,
         [FromBody] EditCustomerAndCustomerAddressDTO data)
     {
         try
         {
+            var cts = CancellationTokenSource.CreateLinkedTokenSource(ct);
+            cts.CancelAfter(TimeSpan.FromSeconds(2));
+
             var current_user = httpCtx.Items["current_user"] as Customer;
             if (current_user is null)
             {
                 return TypedResults.BadRequest("User is not authenticated. Please Login first");
             }
 
-            var c = await customerSvc.EditCustomer(data.custData, current_user, data.addrData);
+            var c = await customerSvc.EditCustomer(cts.Token, data.custData, current_user, data.addrData);
             return TypedResults.Ok(c);
         }
         catch (System.Exception err)
@@ -163,19 +191,23 @@ public static class CustomerHandler
     }
 
     public static async Task<Results<Created<string>, NotFound<string>, BadRequest<string>>> AddCustomerAddress(
+        CancellationToken ct,
         HttpContext httpCtx,
         [FromServices] ICustomerService customerSvc,
         [FromBody] UpsertCustomerAddressDTO addrData)
     {
         try
         {
+            var cts = CancellationTokenSource.CreateLinkedTokenSource(ct);
+            cts.CancelAfter(TimeSpan.FromSeconds(2));
+
             var current_user = httpCtx.Items["current_user"] as Customer;
             if (current_user is null)
             {
                 return TypedResults.BadRequest("User is not authenticated. Please Login first");
             }
 
-            var c = await customerSvc.AddCustomerAddress(current_user.Id, addrData);
+            var c = await customerSvc.AddCustomerAddress(cts.Token, current_user.Id, addrData);
             if (!c)
             {
                 return TypedResults.BadRequest("Adding New Customer Address is failed");
@@ -190,20 +222,30 @@ public static class CustomerHandler
         }
     }
 
-    public static async Task<Results<Ok<Customer>, NotFound<string>, BadRequest<string>, ForbidHttpResult>> UpgradeCustomerToAdmin(
+    public static async Task<Results<Ok<Customer>, NotFound<string>, BadRequest<string>, StatusCodeHttpResult>> UpgradeCustomerToAdmin(
+        CancellationToken ct,
         HttpContext httpCtx,
         [FromServices] ICustomerService customerSvc,
         [FromRoute] int customerId)
     {
         try
         {
-            var c = await customerSvc.FindCustomerById(customerId, true);
+            var cts = CancellationTokenSource.CreateLinkedTokenSource(ct);
+            cts.CancelAfter(TimeSpan.FromSeconds(2));
+
+            var current_user = httpCtx.Items["current_user"] as Customer;
+            if (!current_user!.Role.Equals(UserRoles.ADMIN))
+            {
+                return TypedResults.StatusCode(StatusCodes.Status403Forbidden);
+            }
+
+            var c = await customerSvc.FindCustomerById(cts.Token, customerId, true);
             if (c is null)
             {
                 return TypedResults.NotFound("User did not found");
             }
 
-            c = await customerSvc.EditCustomer(new EditCustomerDTO(c.Name, c.Email, UserRoles.ADMIN), c, null);
+            c = await customerSvc.EditCustomer(cts.Token, new EditCustomerDTO(c.Name, c.Email, UserRoles.ADMIN), c, null);
             return TypedResults.Ok(c);
         }
         catch (System.Exception err)
@@ -214,13 +256,17 @@ public static class CustomerHandler
     }
 
 
-    public static async Task<Results<Ok<string>, NotFound<string>, BadRequest<string>, ForbidHttpResult>> DeleteCustomer(
+    public static async Task<Results<Ok<string>, NotFound<string>, BadRequest<string>, StatusCodeHttpResult>> DeleteCustomer(
+        CancellationToken ct,
         HttpContext httpCtx,
         [FromServices] ICustomerService customerSvc,
         [FromRoute] int customerId)
     {
         try
         {
+            var cts = CancellationTokenSource.CreateLinkedTokenSource(ct);
+            cts.CancelAfter(TimeSpan.FromSeconds(2));
+
             var current_user = httpCtx.Items["current_user"] as Customer;
             if (current_user is null)
             {
@@ -229,16 +275,16 @@ public static class CustomerHandler
 
             if (current_user.Role != UserRoles.ADMIN)
             {
-                return TypedResults.Forbid();
+                return TypedResults.StatusCode(StatusCodes.Status403Forbidden);
             }
 
-            var c = await customerSvc.FindCustomerById(customerId, true);
+            var c = await customerSvc.FindCustomerById(cts.Token, customerId, true);
             if (c is null)
             {
                 return TypedResults.NotFound("User did not found");
             }
 
-            var result = await customerSvc.DeleteCustomer(c);
+            var result = await customerSvc.DeleteCustomer(cts.Token, c);
             if (result)
             {
                 return TypedResults.Ok("Delete Customer success");

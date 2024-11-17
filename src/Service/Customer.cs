@@ -4,21 +4,6 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ECommerce.Service;
 
-public interface ICustomerService
-{
-    Task<IEnumerable<Customer>> FindCustomers(bool track);
-    Task<Customer?> FindCustomerById(int id, bool track);
-    Task<CustomerAddress?> FindCustomerAddressByCustomerId(int id, bool track);
-    Task<Customer?> FindCustomerByNameOrEmail(string str, bool track);
-    Task<Customer> CreateCustomer(CreateCustomerDTO custData,
-        UpsertCustomerAddressDTO? addrData);
-    Task<Customer> EditCustomer(EditCustomerDTO custData,
-        Customer c,
-        CustomerAddress? ca);
-    Task<bool> AddCustomerAddress(int customerId, UpsertCustomerAddressDTO addrData);
-    Task<bool> DeleteCustomer(Customer c);
-}
-
 public class CustomerService : ICustomerService
 {
     private readonly ApplicationDbContext ctx;
@@ -29,10 +14,15 @@ public class CustomerService : ICustomerService
         this.passwordSvc = passwordSvc;
     }
 
-    public async Task<Customer?> FindCustomerById(int id, bool track)
+    public async Task<Customer?> FindCustomerById(
+        CancellationToken ct,
+        int id,
+        bool track)
     {
         try
         {
+            ct.ThrowIfCancellationRequested();
+
             var query = ctx.Customers.AsQueryable();
 
             if (!track)
@@ -42,19 +32,24 @@ public class CustomerService : ICustomerService
 
             return await query.
                 Include(c => c.CustomerAddresses).
-                FirstOrDefaultAsync(c => c.Id.Equals(id));
+                FirstOrDefaultAsync(c => c.Id.Equals(id), ct);
         }
         catch (System.Exception err)
         {
             Console.WriteLine($"There are errors {err}");
-            return null;
+            throw;
         }
     }
 
-    public async Task<CustomerAddress?> FindCustomerAddressByCustomerId(int id, bool track)
+    public async Task<CustomerAddress?> FindCustomerAddressByCustomerId(
+        CancellationToken ct,
+        int id,
+        bool track)
     {
         try
         {
+            ct.ThrowIfCancellationRequested();
+
             var query = ctx.CustomerAddresses.AsQueryable();
 
             if (!track)
@@ -62,7 +57,7 @@ public class CustomerService : ICustomerService
                 query = query.AsNoTracking();
             }
 
-            return await query.FirstOrDefaultAsync(c => c.CustomerId.Equals(id));
+            return await query.FirstOrDefaultAsync(c => c.CustomerId.Equals(id), ct);
         }
         catch (System.Exception err)
         {
@@ -72,10 +67,15 @@ public class CustomerService : ICustomerService
     }
 
 
-    public async Task<Customer?> FindCustomerByNameOrEmail(string str, bool track)
+    public async Task<Customer?> FindCustomerByNameOrEmail(
+        CancellationToken ct,
+        string str,
+        bool track)
     {
         try
         {
+            ct.ThrowIfCancellationRequested();
+
             var query = ctx.Customers.AsQueryable();
 
             if (!track)
@@ -85,7 +85,8 @@ public class CustomerService : ICustomerService
 
             return await query.FirstOrDefaultAsync(
                     c => EF.Functions.Collate(c.Name, "SQL_Latin1_General_CP1_CS_AS").Equals(str) ||
-                    EF.Functions.Collate(c.Email, "SQL_Latin1_General_CP1_CS_AS").Equals(str));
+                    EF.Functions.Collate(c.Email, "SQL_Latin1_General_CP1_CS_AS").Equals(str),
+                    ct);
         }
         catch (System.Exception err)
         {
@@ -94,10 +95,14 @@ public class CustomerService : ICustomerService
         }
     }
 
-    public async Task<IEnumerable<Customer>> FindCustomers(bool track)
+    public async Task<IEnumerable<Customer>> FindCustomers(
+        CancellationToken ct,
+        bool track)
     {
         try
         {
+            ct.ThrowIfCancellationRequested();
+
             var query = ctx.Customers.AsQueryable();
 
             if (!track)
@@ -105,7 +110,7 @@ public class CustomerService : ICustomerService
                 query = query.AsNoTracking();
             }
 
-            return await query.ToListAsync();
+            return await query.ToListAsync(ct);
         }
         catch (System.Exception err)
         {
@@ -114,12 +119,16 @@ public class CustomerService : ICustomerService
         }
     }
 
-    public async Task<Customer> CreateCustomer(CreateCustomerDTO custData,
+    public async Task<Customer> CreateCustomer(
+        CancellationToken ct,
+        CreateCustomerDTO custData,
         UpsertCustomerAddressDTO? addrData)
     {
         using var tx = this.ctx.Database.BeginTransaction(System.Data.IsolationLevel.ReadCommitted);
         try
         {
+            ct.ThrowIfCancellationRequested();
+
             var hashedPassword = this.passwordSvc.HashPassword(custData.password);
             var c = new Customer()
             {
@@ -129,9 +138,7 @@ public class CustomerService : ICustomerService
                 Role = UserRoles.CUSTOMER,
                 CreatedAt = DateTime.Now,
             };
-
             this.ctx.Customers.Add(c);
-            await this.ctx.SaveChangesAsync();
 
             if (addrData is not null)
             {
@@ -144,57 +151,64 @@ public class CustomerService : ICustomerService
                 };
 
                 this.ctx.CustomerAddresses.Add(addr);
-                await this.ctx.SaveChangesAsync();
+                await this.ctx.SaveChangesAsync(ct);
             }
 
-            tx.Commit();
+            await tx.CommitAsync(ct);
             return c;
         }
         catch (System.Exception err)
         {
-            tx.Rollback();
+            await tx.RollbackAsync(ct);
             Console.WriteLine($"There are errors {err}");
             throw;
         }
     }
 
-    public async Task<Customer> EditCustomer(EditCustomerDTO custData,
+    public async Task<Customer> EditCustomer(
+        CancellationToken ct,
+        EditCustomerDTO custData,
         Customer c,
         CustomerAddress? ca)
     {
         using var tx = this.ctx.Database.BeginTransaction(System.Data.IsolationLevel.ReadCommitted);
         try
         {
+            ct.ThrowIfCancellationRequested();
 
             c.Name = custData.name;
             c.Email = custData.email;
             c.Role = custData.role;
 
             this.ctx.Customers.Update(c);
-            await this.ctx.SaveChangesAsync();
 
             if (ca is not null)
             {
                 ca.CustomerId = c.Id;
                 this.ctx.CustomerAddresses.Update(ca);
-                await this.ctx.SaveChangesAsync();
+                await this.ctx.SaveChangesAsync(ct);
             }
 
-            tx.Commit();
+            await tx.CommitAsync(ct);
             return c;
         }
         catch (System.Exception err)
         {
-            tx.Rollback();
+            await tx.RollbackAsync(ct);
             Console.WriteLine($"There are errors {err}");
             throw;
         }
     }
 
-    public async Task<bool> AddCustomerAddress(int customerId, UpsertCustomerAddressDTO addrData)
+    public async Task<bool> AddCustomerAddress(
+        CancellationToken ct,
+        int customerId,
+        UpsertCustomerAddressDTO addrData)
     {
         try
         {
+            ct.ThrowIfCancellationRequested();
+
             var ca = new CustomerAddress
             {
                 Country = addrData.country,
@@ -204,22 +218,26 @@ public class CustomerService : ICustomerService
             };
 
             this.ctx.CustomerAddresses.Add(ca);
-            return await this.ctx.SaveChangesAsync() > 0;
+            return await this.ctx.SaveChangesAsync(ct) > 0;
         }
         catch (System.Exception err)
         {
             Console.WriteLine($"There are errors {err}");
-            return false;
+            throw;
         }
     }
 
-    public async Task<bool> DeleteCustomer(Customer c)
+    public async Task<bool> DeleteCustomer(
+        CancellationToken ct,
+        Customer c)
     {
         try
         {
+            ct.ThrowIfCancellationRequested();
+
             ctx.Customers.Remove(c);
 
-            return await ctx.SaveChangesAsync() > 0;
+            return await ctx.SaveChangesAsync(ct) > 0;
         }
         catch (System.Exception err)
         {

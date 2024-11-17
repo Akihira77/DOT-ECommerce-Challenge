@@ -1,3 +1,5 @@
+namespace ECommerce.Middleware;
+
 using System.Security.Claims;
 using ECommerce.Service;
 
@@ -10,10 +12,15 @@ public class ExtractUserDataFromCookie
         this.next = next;
     }
 
-    public async Task InvokeAsync(HttpContext httpCtx, ICustomerService customerSvc, JwtService jwtSvc)
+    public async Task InvokeAsync(
+        HttpContext httpCtx,
+        ICustomerService customerSvc,
+        JwtService jwtSvc)
     {
         try
         {
+            var cts = new CancellationTokenSource(TimeSpan.FromMilliseconds(300));
+
             var token = httpCtx.Request.Cookies["token"];
             if (!string.IsNullOrEmpty(token))
             {
@@ -24,7 +31,7 @@ public class ExtractUserDataFromCookie
                     var userEmail = principal.FindFirst(ClaimTypes.Email)?.Value;
                     if (!string.IsNullOrEmpty(userEmail))
                     {
-                        var user = await customerSvc.FindCustomerByNameOrEmail(userEmail, false);
+                        var user = await customerSvc.FindCustomerByNameOrEmail(cts.Token, userEmail, false);
                         if (user is not null)
                         {
                             // Store user data in HttpContext.Items to use in the next requests

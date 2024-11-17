@@ -4,16 +4,6 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ECommerce.Service;
 
-public interface ICustomerCartService
-{
-    Task<IEnumerable<CustomerCart>> FindItemsInMyCart(int customerId);
-    Task<CustomerCart?> FindCartItemById(int cartItemId, bool track);
-    Task<CustomerCart?> FindCartItemInMyCartById(int customerId, int cartItemId, bool track, bool includeProduct);
-    Task<IEnumerable<CustomerCart>> AddItemToCart(int customerId, CustomerCartDTO item);
-    Task<CustomerCart> EditItemQuantity(int quantity, ChangeItemQuantity ciq, CustomerCart cc);
-    Task<IEnumerable<CustomerCart>> RemoveItemFromCart(CustomerCart item);
-}
-
 public class CustomerCartService : ICustomerCartService
 {
     private readonly ApplicationDbContext ctx;
@@ -22,10 +12,15 @@ public class CustomerCartService : ICustomerCartService
         this.ctx = ctx;
     }
 
-    public async Task<IEnumerable<CustomerCart>> AddItemToCart(int customerId, CustomerCartDTO item)
+    public async Task<IEnumerable<CustomerCart>> AddItemToCart(
+        CancellationToken ct,
+        int customerId,
+        CustomerCartDTO item)
     {
         try
         {
+            ct.ThrowIfCancellationRequested();
+
             var cc = new CustomerCart
             {
                 CustomerId = customerId,
@@ -33,9 +28,9 @@ public class CustomerCartService : ICustomerCartService
                 Quantity = item.quantity,
             };
             this.ctx.CustomerCarts.Add(cc);
-            await this.ctx.SaveChangesAsync();
+            await this.ctx.SaveChangesAsync(ct);
 
-            return await this.FindItemsInMyCart(customerId);
+            return await this.FindItemsInMyCart(ct, customerId);
         }
         catch (System.Exception err)
         {
@@ -44,10 +39,16 @@ public class CustomerCartService : ICustomerCartService
         }
     }
 
-    public async Task<CustomerCart> EditItemQuantity(int quantity, ChangeItemQuantity ciq, CustomerCart cc)
+    public async Task<CustomerCart> EditItemQuantity(
+        CancellationToken ct,
+        int quantity,
+        ChangeItemQuantity ciq,
+        CustomerCart cc)
     {
         try
         {
+            ct.ThrowIfCancellationRequested();
+
             if (ciq.Equals(ChangeItemQuantity.INCREASE_OR_DECREASE))
             {
                 cc.Quantity += quantity;
@@ -58,7 +59,7 @@ public class CustomerCartService : ICustomerCartService
             }
 
             this.ctx.CustomerCarts.Update(cc);
-            await this.ctx.SaveChangesAsync();
+            await this.ctx.SaveChangesAsync(ct);
 
             return cc;
         }
@@ -69,10 +70,15 @@ public class CustomerCartService : ICustomerCartService
         }
     }
 
-    public async Task<CustomerCart?> FindCartItemById(int cartItemId, bool track)
+    public async Task<CustomerCart?> FindCartItemById(
+        CancellationToken ct,
+        int cartItemId,
+        bool track)
     {
         try
         {
+            ct.ThrowIfCancellationRequested();
+
             var query = this.ctx.CustomerCarts.AsQueryable();
 
             if (!track)
@@ -80,7 +86,7 @@ public class CustomerCartService : ICustomerCartService
                 query = query.AsNoTracking();
             }
 
-            return await query.FirstOrDefaultAsync(cc => cc.Id.Equals(cartItemId));
+            return await query.FirstOrDefaultAsync(cc => cc.Id.Equals(cartItemId), ct);
         }
         catch (System.Exception err)
         {
@@ -89,10 +95,17 @@ public class CustomerCartService : ICustomerCartService
         }
     }
 
-    public async Task<CustomerCart?> FindCartItemInMyCartById(int customerId, int cartItemId, bool track, bool includeProduct)
+    public async Task<CustomerCart?> FindCartItemInMyCartById(
+        CancellationToken ct,
+        int customerId,
+        int cartItemId,
+        bool track,
+        bool includeProduct)
     {
         try
         {
+            ct.ThrowIfCancellationRequested();
+
             var query = this.ctx.CustomerCarts.AsQueryable();
 
             if (!track)
@@ -107,7 +120,8 @@ public class CustomerCartService : ICustomerCartService
 
             return await query.FirstOrDefaultAsync(
                     cc => cc.CustomerId.Equals(customerId) &&
-                    cc.Id.Equals(cartItemId));
+                    cc.Id.Equals(cartItemId),
+                    ct);
         }
         catch (System.Exception err)
         {
@@ -116,15 +130,19 @@ public class CustomerCartService : ICustomerCartService
         }
     }
 
-    public async Task<IEnumerable<CustomerCart>> FindItemsInMyCart(int customerId)
+    public async Task<IEnumerable<CustomerCart>> FindItemsInMyCart(
+        CancellationToken ct,
+        int customerId)
     {
         try
         {
+            ct.ThrowIfCancellationRequested();
+
             var myCart = await this.ctx
                 .CustomerCarts
                 .AsNoTracking()
                 .Where(cc => cc.CustomerId.Equals(customerId))
-                .ToListAsync();
+                .ToListAsync(ct);
 
             return myCart;
         }
@@ -135,16 +153,20 @@ public class CustomerCartService : ICustomerCartService
         }
     }
 
-    public async Task<IEnumerable<CustomerCart>> RemoveItemFromCart(CustomerCart item)
+    public async Task<IEnumerable<CustomerCart>> RemoveItemFromCart(
+        CancellationToken ct,
+        CustomerCart item)
     {
         try
         {
+            ct.ThrowIfCancellationRequested();
+
             int customerId = item.CustomerId;
 
             this.ctx.CustomerCarts.Remove(item);
             await this.ctx.SaveChangesAsync();
 
-            return await this.FindItemsInMyCart(customerId);
+            return await this.FindItemsInMyCart(ct, customerId);
         }
         catch (System.Exception err)
         {
