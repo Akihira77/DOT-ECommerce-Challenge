@@ -18,16 +18,18 @@ public class ExtractUserDataFromCookie
             if (!string.IsNullOrEmpty(token))
             {
                 var principal = jwtSvc.VerifyJwtToken(token);
-
-                // Extract user identifier from token claims (e.g., user's email)
-                var userEmail = principal.FindFirst(ClaimTypes.Email)?.Value;
-                if (!string.IsNullOrEmpty(userEmail))
+                if (principal is not null)
                 {
-                    var user = await customerSvc.FindCustomerByNameOrEmail(userEmail, false);
-                    if (user is not null)
+                    // Extract user identifier from token claims (e.g., user's email)
+                    var userEmail = principal.FindFirst(ClaimTypes.Email)?.Value;
+                    if (!string.IsNullOrEmpty(userEmail))
                     {
-                        // Store user data in HttpContext.Items to use in the next requests
-                        httpCtx.Items["current_user"] = user;
+                        var user = await customerSvc.FindCustomerByNameOrEmail(userEmail, false);
+                        if (user is not null)
+                        {
+                            // Store user data in HttpContext.Items to use in the next requests
+                            httpCtx.Items["current_user"] = user;
+                        }
                     }
                 }
             }

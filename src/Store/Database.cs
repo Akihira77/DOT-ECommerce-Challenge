@@ -9,6 +9,7 @@ public class ApplicationDbContext : DbContext
     {
     }
 
+#pragma warning disable CS8618 // Non-nullable property must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
     public DbSet<Customer> Customers { get; set; }
     public DbSet<CustomerAddress> CustomerAddresses { get; set; }
     public DbSet<CustomerCart> CustomerCarts { get; set; }
@@ -18,6 +19,7 @@ public class ApplicationDbContext : DbContext
     public DbSet<OrderItem> OrderItems { get; set; }
     public DbSet<OrderTransaction> OrderTransactions { get; set; }
     public DbSet<CustomerOrderHistory> CustomerOrderHistories { get; set; }
+#pragma warning restore CS8618
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

@@ -14,7 +14,7 @@ public class Order
 
     public OrderTransaction? Transaction { get; set; }
     public CustomerOrderHistory? CustomerOrderHistory { get; set; }
-    public ICollection<OrderItem> OrderItems { get; set; }
+    public ICollection<OrderItem> OrderItems { get; set; } = new List<OrderItem>();
 }
 
 public enum OrderStatus

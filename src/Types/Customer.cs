@@ -12,9 +12,9 @@ public class Customer
     public UserRoles Role { get; set; }
     public DateTime CreatedAt { get; set; }
 
-    public ICollection<CustomerAddress> CustomerAddresses { get; set; }
-    public ICollection<CustomerOrderHistory> CustomerOrderHistories { get; set; }
-    public ICollection<CustomerCart> CustomerCarts { get; set; }
+    public ICollection<CustomerAddress> CustomerAddresses { get; set; } = new List<CustomerAddress>();
+    public ICollection<CustomerOrderHistory> CustomerOrderHistories { get; set; } = new List<CustomerOrderHistory>();
+    public ICollection<CustomerCart> CustomerCarts { get; set; } = new List<CustomerCart>();
 }
 
 
@@ -35,7 +35,13 @@ public class CustomerCart
     public int ProductId { get; set; }
     public Product? Product { get; set; }
 
-    public uint Quantity { get; set; } = 1;
+    public int Quantity { get; set; } = 1;
+}
+
+public enum ChangeItemQuantity
+{
+    INCREASE_OR_DECREASE,
+    CHANGE
 }
 
 // DTO excluding password
@@ -44,3 +50,4 @@ public record CreateCustomerDTO(string name, string email, string password);
 public record CreateCustomerAndCustomerAddressDTO(CreateCustomerDTO custData, UpsertCustomerAddressDTO? addrData);
 public record EditCustomerDTO(string name, string email, UserRoles role);
 public record EditCustomerAndCustomerAddressDTO(EditCustomerDTO custData, CustomerAddress? addrData);
+public record CustomerCartDTO(int productId, int quantity);

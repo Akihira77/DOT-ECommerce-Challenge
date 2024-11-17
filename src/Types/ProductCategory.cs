@@ -10,7 +10,7 @@ public class ProductCategory
     public required string Description { get; set; }
     public uint ProductCount { get; set; }
 
-    public ICollection<Product> Products { get; set; }
+    public ICollection<Product> Products { get; set; } = new List<Product>();
 }
 
 public record UpsertProductCategoryDTO(string name, string description);

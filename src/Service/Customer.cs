@@ -154,7 +154,7 @@ public class CustomerService : ICustomerService
         {
             tx.Rollback();
             Console.WriteLine($"There are errors {err}");
-            return null;
+            throw;
         }
     }
 
@@ -187,7 +187,7 @@ public class CustomerService : ICustomerService
         {
             tx.Rollback();
             Console.WriteLine($"There are errors {err}");
-            return null;
+            throw;
         }
     }
 
@@ -224,7 +224,7 @@ public class CustomerService : ICustomerService
         catch (System.Exception err)
         {
             Console.WriteLine($"There are errors {err}");
-            throw err;
+            throw;
         }
     }
 }

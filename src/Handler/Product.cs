@@ -111,7 +111,7 @@ public static class ProductHandler
                 return TypedResults.NotFound("Product did not found");
             }
 
-            var result = await productSvc.DeleteProduct(ps, ps.ProductCategory);
+            var result = await productSvc.DeleteProduct(ps, ps.ProductCategory!);
             if (!result)
             {
                 return TypedResults.BadRequest("Deleting Product Failed");

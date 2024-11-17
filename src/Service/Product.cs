@@ -51,7 +51,7 @@ public class ProductService : IProductService
         {
             tx.Rollback();
             Console.WriteLine($"There are errors {err}");
-            return null;
+            throw;
         }
     }
 
@@ -95,7 +95,7 @@ public class ProductService : IProductService
         catch (System.Exception err)
         {
             Console.WriteLine($"There are errors {err}");
-            return null;
+            throw;
         }
     }
 

@@ -25,6 +25,7 @@ builder.Services.AddScoped<PasswordService>();
 builder.Services.AddScoped<ICustomerService, CustomerService>();
 builder.Services.AddScoped<IProductCategoryService, ProductCategoryService>();
 builder.Services.AddScoped<IProductService, ProductService>();
+builder.Services.AddScoped<ICustomerCartService, CustomerCartService>();
 
 var app = builder.Build();
 

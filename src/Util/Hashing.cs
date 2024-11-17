@@ -11,12 +11,12 @@ public class PasswordService
 
     public string HashPassword(string password)
     {
-        return this.passwordHasher.HashPassword(null, password);
+        return this.passwordHasher.HashPassword(new object(), password);
     }
 
     public bool VerifyPassword(string hashedPassword, string password)
     {
-        var result = this.passwordHasher.VerifyHashedPassword(null, hashedPassword, password);
+        var result = this.passwordHasher.VerifyHashedPassword(new object(), hashedPassword, password);
         return result == PasswordVerificationResult.Success;
     }
 }
