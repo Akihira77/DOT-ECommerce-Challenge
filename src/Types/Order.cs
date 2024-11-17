@@ -29,7 +29,7 @@ public class OrderItem
 {
     [Key]
     public int Int { get; set; }
-    public uint Quantity { get; set; }
+    public int Quantity { get; set; }
 
     public int ProductId { get; set; }
     public Product? Product { get; set; }
@@ -37,3 +37,6 @@ public class OrderItem
     public int OrderId { get; set; }
     public Order? Order { get; set; }
 }
+
+public record CreateOrderDTO(IEnumerable<CustomerCart> myCart);
+public record OrderJob(int orderId, int customerId, IEnumerable<CustomerCart> myCart);

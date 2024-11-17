@@ -10,7 +10,7 @@ public class Product
     public required string Name { get; set; }
     [Column(TypeName = "decimal(18,4)")]
     public decimal Price { get; set; }
-    public uint Stock { get; set; }
+    public int Stock { get; set; }
     public string Description { get; set; } = string.Empty;
     public DateTime CreatedAt { get; set; }
 
@@ -20,5 +20,5 @@ public class Product
     public ICollection<CustomerCart> CustomerCarts { get; set; } = new List<CustomerCart>();
 }
 
-public record CreateProductDTO(string name, decimal price, uint stock, string description, int productCategoryId);
-public record EditProductDTO(string name, decimal price, uint stock, string description);
+public record CreateProductDTO(string name, decimal price, int stock, string description, int productCategoryId);
+public record EditProductDTO(string name, decimal price, int stock, string description);
