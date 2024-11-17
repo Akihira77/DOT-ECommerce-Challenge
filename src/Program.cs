@@ -1,16 +1,24 @@
 using System.Text.Json.Serialization;
+using System.Threading.RateLimiting;
 using ECommerce.Middleware;
 using ECommerce.Router;
 using ECommerce.Service;
 using ECommerce.Store;
+using Microsoft.AspNetCore.Http.Json;
 using Microsoft.AspNetCore.HttpLogging;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddHttpLogging(log =>
 {
-    log.LoggingFields = HttpLoggingFields.All;
+    log.LoggingFields = HttpLoggingFields.RequestMethod
+                        | HttpLoggingFields.RequestPath
+                        | HttpLoggingFields.RequestQuery
+                        | HttpLoggingFields.Duration
+                        | HttpLoggingFields.ResponseStatusCode;
+    log.CombineLogs = true;
 });
 
 builder.Services.AddDbContext<ApplicationDbContext>(o =>
@@ -18,8 +26,33 @@ builder.Services.AddDbContext<ApplicationDbContext>(o =>
     o.UseSqlServer(builder.Configuration.GetConnectionString("SQLServer"));
 });
 
-builder.Services.Configure<Microsoft.AspNetCore.Http.Json.JsonOptions>(options => options.SerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles);
+builder.Services.Configure<JsonOptions>(options =>
+        options.SerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles);
 builder.Services.AddAntiforgery();
+builder.Services.AddRateLimiter(conf =>
+{
+    conf.OnRejected = (context, cancellationToken) =>
+    {
+        if (context.Lease.TryGetMetadata(MetadataName.RetryAfter, out var retryAfter))
+        {
+            context.HttpContext.Response.Headers.RetryAfter = retryAfter.TotalSeconds.ToString();
+        }
+
+        context.HttpContext.Response.StatusCode = StatusCodes.Status429TooManyRequests;
+        context.HttpContext.Response.WriteAsync("Too many requests. Please try again later.");
+
+        return new ValueTask();
+    };
+    conf.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+    conf.AddFixedWindowLimiter("fixed", o =>
+    {
+        o.PermitLimit = 10;
+        o.Window = TimeSpan.FromMinutes(1);
+        o.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+        o.QueueLimit = 0;
+    });
+});
+
 
 builder.Services.AddScoped<JwtService>();
 builder.Services.AddScoped<PasswordService>();
@@ -32,6 +65,7 @@ var app = builder.Build();
 
 app.UseHttpLogging();
 app.UseAntiforgery();
+app.UseRateLimiter();
 
 app.UseMiddleware<OperationCanceledMiddleware>();
 app.UseMiddleware<ExtractUserDataFromCookie>();
