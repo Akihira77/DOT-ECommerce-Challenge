@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ECommerce.Types;
 
@@ -7,19 +8,21 @@ public class Order
     [Key]
     public int Id { get; set; }
     public OrderStatus OrderStatus { get; set; }
+    [Column(TypeName = "decimal(18,4)")]
+    public decimal Amount { get; set; }
     public DateTime CreatedAt { get; set; }
 
     public int CustomerId { get; set; }
     public Customer? Customer { get; set; }
 
-    public OrderTransaction? Transaction { get; set; }
+    public OrderTransaction? OrderTransaction { get; set; }
     public CustomerOrderHistory? CustomerOrderHistory { get; set; }
     public ICollection<OrderItem> OrderItems { get; set; } = new List<OrderItem>();
 }
 
 public enum OrderStatus
 {
-    WAITING,
+    WAITING_PAYMENT,
     PROCESS,
     SHIP,
     COMPLETE

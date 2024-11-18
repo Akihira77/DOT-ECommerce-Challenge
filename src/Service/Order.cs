@@ -26,26 +26,69 @@ public class OrderService : IOrderService
             var o = new Order
             {
                 CustomerId = customerId,
-                OrderStatus = OrderStatus.WAITING,
+                OrderStatus = OrderStatus.WAITING_PAYMENT,
                 CreatedAt = DateTime.Now,
+                Amount = myCart.Sum(cc => cc.Product!.Price * cc.Quantity),
             };
-            this.ctx.Orders.Add(o);
+            await this.ctx.Orders.AddAsync(o, ct);
+
+            //NOTE: IDK IF IT IS THE RIGHT PLACE TO CREATE ORDER TRANSACTION
+            // var ot = new OrderTransaction
+            // {
+            //     OrderId = o.Id,
+            //     Order = o,
+            //     PaymentMethod = PaymentMethod.CREDIT_CARD,
+            //     PaymentStatus = PaymentStatus.PENDING
+            // };
+            // await this.ctx.OrderTransactions.AddAsync(ot, ct);
+
+            //NOTE: INSTEAD PERFORM EXCLUSIVE LOCK ONE BY ONE
+            //RETRIEVE ALL RELATED PRODUCTS AND PROCESS IN APPLICATION LAYER (PROGRAM)
+            // foreach (var item in myCart)
+            // {
+            //     var p = await this.ctx.Products
+            //         .FromSqlInterpolated(
+            //                 $"SELECT * FROM Products WITH (UPDLOCK, ROWLOCK) WHERE Id = {item.ProductId}"
+            //                 )
+            //         .SingleAsync(ct);
+            //
+            //     if (p.Stock < item.Quantity)
+            //     {
+            //         throw new Exception($"Insufficient Product Stock");
+            //     }
+            //
+            //     p.Stock -= item.Quantity;
+            //
+            //     o.OrderItems.Add(new OrderItem
+            //             {
+            //             OrderId = o.Id,
+            //             ProductId = item.ProductId,
+            //             Quantity = item.Quantity,
+            //             });
+            // }
+
+            var productIds = myCart
+                .Select(cc => cc.ProductId)
+                .ToList();
+            var products = await this.ctx.Products
+                .FromSqlInterpolated(
+                    $"SELECT * FROM Products WITH (UPDLOCK, ROWLOCK) WHERE Id IN ({string.Join(",", productIds)})"
+                )
+                .ToDictionaryAsync(p => p.Id, ct);
 
             foreach (var item in myCart)
             {
-                var p = await this.ctx.Products
-                    .FromSqlInterpolated(
-                        $"SELECT * FROM Products WITH (UPDLOCK, ROWLOCK) WHERE Id = {item.ProductId}"
-                    )
-                    .SingleAsync(ct);
-
-                if (p.Stock < item.Quantity)
+                if (!products.TryGetValue(item.ProductId, out var product))
                 {
-                    throw new Exception($"Insufficient Product Stock");
+                    throw new Exception($"Product with ID {item.ProductId} not found.");
                 }
 
-                p.Stock -= item.Quantity;
+                if (product.Stock < item.Quantity)
+                {
+                    throw new Exception($"Insufficient stock for Product ID {item.ProductId}");
+                }
 
+                product.Stock -= item.Quantity;
                 o.OrderItems.Add(new OrderItem
                 {
                     OrderId = o.Id,
@@ -88,7 +131,7 @@ public class OrderService : IOrderService
             }
 
             return await query
-                .Include(o => o.Transaction)
+                .Include(o => o.OrderTransaction)
                 .Include(o => o.OrderItems)
                 .FirstOrDefaultAsync(o => o.Id.Equals(id) &&
                         o.CustomerId.Equals(customerId), ct);
@@ -117,7 +160,7 @@ public class OrderService : IOrderService
             }
 
             return await query
-                .Include(o => o.Transaction)
+                .Include(o => o.OrderTransaction)
                 .Where(o => o.CustomerId.Equals(customerId))
                 .ToListAsync(ct);
         }
@@ -145,7 +188,7 @@ public class OrderService : IOrderService
             }
 
             return await query
-                .Include(o => o.Transaction)
+                .Include(o => o.OrderTransaction)
                 .Include(o => o.OrderItems)
                 .FirstOrDefaultAsync(o => o.Id.Equals(id), ct);
         }
@@ -172,7 +215,7 @@ public class OrderService : IOrderService
             }
 
             return await query
-                .Include(o => o.Transaction)
+                .Include(o => o.OrderTransaction)
                 .Include(o => o.Customer)
                 .ToListAsync(ct);
         }

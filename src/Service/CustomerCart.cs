@@ -176,6 +176,7 @@ public class CustomerCartService : ICustomerCartService
             var myCart = await this.ctx
                 .CustomerCarts
                 .AsNoTracking()
+                .Include(cc => cc.Product)
                 .Where(cc => cc.CustomerId.Equals(customerId))
                 .ToListAsync(ct);
 

@@ -19,6 +19,7 @@ public static class OrderRouter
         requireAuthenticationGroup.MapGet("", OrderHandler.FindMyOrderHistories);
         requireAuthenticationGroup.MapGet("/{id}", OrderHandler.FindMyOrderById);
         requireAuthenticationGroup.MapPost("", OrderHandler.CreateOrder);
+        requireAuthenticationGroup.MapPost("/paying/{orderId}", OrderHandler.PayingOrder);
     }
 
     private static void RequireAdminRoutes(this RouteGroupBuilder r)

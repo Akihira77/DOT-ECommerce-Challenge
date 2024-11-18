@@ -55,7 +55,7 @@ public class ApplicationDbContext : DbContext
             OnDelete(DeleteBehavior.SetNull);
 
         modelBuilder.Entity<Order>().
-            HasOne<OrderTransaction>(o => o.Transaction).
+            HasOne<OrderTransaction>(o => o.OrderTransaction).
             WithOne(ot => ot.Order).
             HasForeignKey<OrderTransaction>(ot => ot.OrderId).
             OnDelete(DeleteBehavior.Cascade);

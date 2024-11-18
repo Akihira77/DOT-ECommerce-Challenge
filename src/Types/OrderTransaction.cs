@@ -26,3 +26,5 @@ public enum PaymentStatus
     FAILED,
     SUCCESS
 }
+
+public record PayingOrderDTO(PaymentMethod paymentMethod);

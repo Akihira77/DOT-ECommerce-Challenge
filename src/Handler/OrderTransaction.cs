@@ -7,6 +7,42 @@ namespace ECommerce.Handler;
 
 public static class OrderHandler
 {
+    public static async Task<Results<Ok<OrderTransaction>, NotFound<string>, BadRequest<string>>> PayingOrder(
+        HttpContext httpCtx,
+        CancellationToken ct,
+        [FromServices] IOrderService orderSvc,
+        [FromServices] IOrderTransactionService orderTransactionSvc,
+        [FromRoute] int orderId,
+        [FromBody] PayingOrderDTO data)
+    {
+        try
+        {
+            var cts = CancellationTokenSource.CreateLinkedTokenSource(ct);
+            cts.CancelAfter(TimeSpan.FromSeconds(2));
+
+            var current_user = httpCtx.Items["current_user"] as Customer;
+            var o = await orderSvc.FindMyOrderById(cts.Token, orderId, current_user!.Id, false);
+            if (o is null)
+            {
+                return TypedResults.NotFound("Order did not found");
+            }
+
+            if (!o.OrderStatus.Equals(OrderStatus.WAITING_PAYMENT))
+            {
+                return TypedResults.BadRequest("This order already being processed");
+            }
+
+            var ot = await orderTransactionSvc.PayingOrder(cts.Token, data, o);
+
+            return TypedResults.Ok(ot);
+        }
+        catch (System.Exception err)
+        {
+            Console.WriteLine($"There are errors ${err}");
+            throw;
+        }
+    }
+
     public static async Task<Results<Created<Order>, BadRequest<string>>> CreateOrder(
         HttpContext httpCtx,
         CancellationToken ct,
