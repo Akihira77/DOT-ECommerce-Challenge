@@ -19,7 +19,7 @@ public class ExtractUserDataFromCookie
     {
         try
         {
-            var cts = new CancellationTokenSource(TimeSpan.FromMilliseconds(300));
+            var cts = new CancellationTokenSource(TimeSpan.FromSeconds(2));
 
             var token = httpCtx.Request.Cookies["token"];
             if (!string.IsNullOrEmpty(token))

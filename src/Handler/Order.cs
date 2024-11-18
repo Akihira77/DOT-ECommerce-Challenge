@@ -11,20 +11,22 @@ public static class OrderHandler
         HttpContext httpCtx,
         CancellationToken ct,
         [FromServices] IOrderService orderSvc,
-        [FromBody] CreateOrderDTO data)
+        [FromServices] ICustomerCartService customerCartSvc)
     {
         try
         {
-            if (!data.myCart.Any())
-            {
-                return TypedResults.BadRequest("Your cart is empty");
-            }
-
             var cts = CancellationTokenSource.CreateLinkedTokenSource(ct);
             cts.CancelAfter(TimeSpan.FromSeconds(3));
 
             var current_user = httpCtx.Items["current_user"] as Customer;
-            var o = await orderSvc.CreateOrder(cts.Token, current_user!.Id, data);
+            var myCart = await customerCartSvc.FindItemsInMyCart(cts.Token, current_user!.Id);
+            if (!myCart.Any())
+            {
+                return TypedResults.BadRequest("Your cart is empty");
+            }
+
+
+            var o = await orderSvc.CreateOrder(cts.Token, current_user!.Id, myCart);
 
             return TypedResults.Created(httpCtx.Request.Path, o);
         }

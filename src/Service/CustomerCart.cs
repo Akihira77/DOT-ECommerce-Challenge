@@ -95,6 +95,41 @@ public class CustomerCartService : ICustomerCartService
         }
     }
 
+    public async Task<CustomerCart?> FindCartItemInMyCartByProductId(
+        CancellationToken ct,
+        int customerId,
+        int productId,
+        bool track,
+        bool includeProduct)
+    {
+        try
+        {
+            ct.ThrowIfCancellationRequested();
+
+            var query = this.ctx.CustomerCarts.AsQueryable();
+
+            if (!track)
+            {
+                query = query.AsNoTracking();
+            }
+
+            if (includeProduct)
+            {
+                query = query.Include(cc => cc.Product);
+            }
+
+            return await query.FirstOrDefaultAsync(
+                    cc => cc.CustomerId.Equals(customerId) &&
+                    cc.ProductId.Equals(productId),
+                    ct);
+        }
+        catch (System.Exception err)
+        {
+            Console.WriteLine($"There are errors {err}");
+            throw;
+        }
+    }
+
     public async Task<CustomerCart?> FindCartItemInMyCartById(
         CancellationToken ct,
         int customerId,

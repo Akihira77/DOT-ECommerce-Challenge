@@ -8,12 +8,12 @@ namespace ECommerce.Service;
 public class OrderProcessingQueue
 {
     private readonly Channel<OrderJob> queue;
-    private readonly ApplicationDbContext ctx;
+    private readonly IDbContextFactory<ApplicationDbContext> dbCtxFactory;
 
-    public OrderProcessingQueue(ApplicationDbContext ctx)
+    public OrderProcessingQueue(IDbContextFactory<ApplicationDbContext> dbCtxFactory)
     {
         this.queue = Channel.CreateUnbounded<OrderJob>();
-        this.ctx = ctx;
+        this.dbCtxFactory = dbCtxFactory;
     }
 
     public async Task EnqueueAsync(OrderJob job, CancellationToken ct)
@@ -39,27 +39,39 @@ public class OrderProcessingQueue
 
     public async Task ProcessOrderAsync(OrderJob job, CancellationToken ct)
     {
-        using var tx = this.ctx.Database.BeginTransaction(System.Data.IsolationLevel.RepeatableRead);
+        using var dbCtx = this.dbCtxFactory.CreateDbContext();
+        using var tx = dbCtx.Database.BeginTransaction(System.Data.IsolationLevel.RepeatableRead);
+        Order? order;
         try
         {
             ct.ThrowIfCancellationRequested();
 
-            var order = await this.ctx.Orders.FirstOrDefaultAsync(o => o.Id.Equals(job.orderId), ct);
+            order = await dbCtx.Orders.FirstOrDefaultAsync(o => o.Id.Equals(job.orderId), ct);
             if (order is null)
             {
                 throw new Exception($"Order did not found");
             }
+        }
+        catch (System.Exception err)
+        {
+            Console.WriteLine($"There are errors {err.Message}");
+            throw; // Log and handle appropriately
+        }
+
+        try
+        {
+            ct.ThrowIfCancellationRequested();
 
             foreach (var item in job.myCart)
             {
-                this.ctx.OrderItems.Add(new OrderItem
+                order.OrderItems.Add(new OrderItem
                 {
                     OrderId = job.orderId,
                     ProductId = item.ProductId,
                     Quantity = item.Quantity,
                 });
 
-                var product = await this.ctx.Products.FirstOrDefaultAsync(p => p.Id.Equals(item.ProductId), ct);
+                var product = await dbCtx.Products.FirstOrDefaultAsync(p => p.Id.Equals(item.ProductId), ct);
                 if (product is null)
                 {
                     throw new Exception($"Product did not found");
@@ -74,15 +86,19 @@ public class OrderProcessingQueue
             }
 
             // Remove cart items
-            var cartItems = this.ctx.CustomerCarts.Where(c => c.CustomerId.Equals(job.customerId));
-            this.ctx.CustomerCarts.RemoveRange(cartItems);
+            var cartItems = dbCtx.CustomerCarts.Where(c => c.CustomerId.Equals(job.customerId));
+            dbCtx.CustomerCarts.RemoveRange(cartItems);
 
-            await this.ctx.SaveChangesAsync(ct);
+            dbCtx.OrderItems.AddRange(order.OrderItems);
+            await dbCtx.SaveChangesAsync(ct);
             await tx.CommitAsync(ct);
         }
         catch (System.Exception err)
         {
             await tx.RollbackAsync(ct);
+
+            dbCtx.Orders.Remove(order);
+
             Console.WriteLine($"There are errors {err.Message}");
             throw; // Log and handle appropriately
         }

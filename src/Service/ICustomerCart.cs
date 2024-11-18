@@ -17,6 +17,12 @@ public interface ICustomerCartService
         int cartItemId,
         bool track,
         bool includeProduct);
+    Task<CustomerCart?> FindCartItemInMyCartByProductId(
+        CancellationToken ct,
+        int customerId,
+        int productId,
+        bool track,
+        bool includeProduct);
     Task<IEnumerable<CustomerCart>> AddItemToCart(
         CancellationToken ct,
         int customerId,

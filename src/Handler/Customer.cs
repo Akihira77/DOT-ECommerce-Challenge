@@ -63,12 +63,7 @@ public static class CustomerHandler
             cts.CancelAfter(TimeSpan.FromSeconds(2));
 
             var current_user = httpCtx.Items["current_user"] as Customer;
-            if (current_user is null)
-            {
-                return TypedResults.Unauthorized();
-            }
-
-            var c = await customerSvc.FindCustomerById(cts.Token, current_user.Id, false);
+            var c = await customerSvc.FindCustomerById(cts.Token, current_user!.Id, false);
 
             return TypedResults.Ok(c);
         }
@@ -175,12 +170,7 @@ public static class CustomerHandler
             cts.CancelAfter(TimeSpan.FromSeconds(2));
 
             var current_user = httpCtx.Items["current_user"] as Customer;
-            if (current_user is null)
-            {
-                return TypedResults.BadRequest("User is not authenticated. Please Login first");
-            }
-
-            var c = await customerSvc.EditCustomer(cts.Token, data.custData, current_user, data.addrData);
+            var c = await customerSvc.EditCustomer(cts.Token, data.custData, current_user!, data.addrData);
             return TypedResults.Ok(c);
         }
         catch (System.Exception err)
@@ -202,12 +192,7 @@ public static class CustomerHandler
             cts.CancelAfter(TimeSpan.FromSeconds(2));
 
             var current_user = httpCtx.Items["current_user"] as Customer;
-            if (current_user is null)
-            {
-                return TypedResults.BadRequest("User is not authenticated. Please Login first");
-            }
-
-            var c = await customerSvc.AddCustomerAddress(cts.Token, current_user.Id, addrData);
+            var c = await customerSvc.AddCustomerAddress(cts.Token, current_user!.Id, addrData);
             if (!c)
             {
                 return TypedResults.BadRequest("Adding New Customer Address is failed");
@@ -224,7 +209,6 @@ public static class CustomerHandler
 
     public static async Task<Results<Ok<Customer>, NotFound<string>, BadRequest<string>, StatusCodeHttpResult>> UpgradeCustomerToAdmin(
         CancellationToken ct,
-        HttpContext httpCtx,
         [FromServices] ICustomerService customerSvc,
         [FromRoute] int customerId)
     {
@@ -232,12 +216,6 @@ public static class CustomerHandler
         {
             var cts = CancellationTokenSource.CreateLinkedTokenSource(ct);
             cts.CancelAfter(TimeSpan.FromSeconds(2));
-
-            var current_user = httpCtx.Items["current_user"] as Customer;
-            if (!current_user!.Role.Equals(UserRoles.ADMIN))
-            {
-                return TypedResults.StatusCode(StatusCodes.Status403Forbidden);
-            }
 
             var c = await customerSvc.FindCustomerById(cts.Token, customerId, true);
             if (c is null)
@@ -258,7 +236,6 @@ public static class CustomerHandler
 
     public static async Task<Results<Ok<string>, NotFound<string>, BadRequest<string>, StatusCodeHttpResult>> DeleteCustomer(
         CancellationToken ct,
-        HttpContext httpCtx,
         [FromServices] ICustomerService customerSvc,
         [FromRoute] int customerId)
     {
@@ -266,17 +243,6 @@ public static class CustomerHandler
         {
             var cts = CancellationTokenSource.CreateLinkedTokenSource(ct);
             cts.CancelAfter(TimeSpan.FromSeconds(2));
-
-            var current_user = httpCtx.Items["current_user"] as Customer;
-            if (current_user is null)
-            {
-                return TypedResults.BadRequest("User is not authenticated. Please Login first");
-            }
-
-            if (current_user.Role != UserRoles.ADMIN)
-            {
-                return TypedResults.StatusCode(StatusCodes.Status403Forbidden);
-            }
 
             var c = await customerSvc.FindCustomerById(cts.Token, customerId, true);
             if (c is null)

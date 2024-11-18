@@ -38,5 +38,5 @@ public class OrderItem
     public Order? Order { get; set; }
 }
 
-public record CreateOrderDTO(IEnumerable<CustomerCart> myCart);
+public record CreateOrderDTO(IEnumerable<CustomerCartDTO> myCart);
 public record OrderJob(int orderId, int customerId, IEnumerable<CustomerCart> myCart);

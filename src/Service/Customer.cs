@@ -151,9 +151,9 @@ public class CustomerService : ICustomerService
                 };
 
                 this.ctx.CustomerAddresses.Add(addr);
-                await this.ctx.SaveChangesAsync(ct);
             }
 
+            await this.ctx.SaveChangesAsync(ct);
             await tx.CommitAsync(ct);
             return c;
         }

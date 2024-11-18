@@ -13,8 +13,12 @@ public class OrderService : IOrderService
         this.ctx = ctx;
     }
 
-    public async Task<Order> CreateOrder(CancellationToken ct, int customerId, CreateOrderDTO data)
+    public async Task<Order> CreateOrder(
+        CancellationToken ct,
+        int customerId,
+        IEnumerable<CustomerCart> myCart)
     {
+        using var tx = this.ctx.Database.BeginTransaction(System.Data.IsolationLevel.RepeatableRead);
         try
         {
             ct.ThrowIfCancellationRequested();
@@ -26,21 +30,51 @@ public class OrderService : IOrderService
                 CreatedAt = DateTime.Now,
             };
             this.ctx.Orders.Add(o);
-            await this.ctx.SaveChangesAsync(ct);
 
-            var queue = new OrderProcessingQueue(this.ctx);
-            await queue.EnqueueAsync(new OrderJob(o.Id, customerId, data.myCart), ct);
+            foreach (var item in myCart)
+            {
+                var p = await this.ctx.Products
+                    .FromSqlInterpolated(
+                        $"SELECT * FROM Products WITH (UPDLOCK, ROWLOCK) WHERE Id = {item.ProductId}"
+                    )
+                    .SingleAsync(ct);
+
+                if (p.Stock < item.Quantity)
+                {
+                    throw new Exception($"Insufficient Product Stock");
+                }
+
+                p.Stock -= item.Quantity;
+
+                o.OrderItems.Add(new OrderItem
+                {
+                    OrderId = o.Id,
+                    ProductId = item.ProductId,
+                    Quantity = item.Quantity,
+                });
+            }
+
+            await this.ctx.OrderItems.AddRangeAsync(o.OrderItems, ct);
+            await this.ctx.Database.ExecuteSqlInterpolatedAsync(
+                $"DELETE FROM CustomerCarts WHERE CustomerId = {customerId}", ct);
+            await this.ctx.SaveChangesAsync(ct);
+            await tx.CommitAsync(ct);
 
             return o;
         }
         catch (System.Exception err)
         {
+            await tx.RollbackAsync(ct);
             Console.WriteLine($"There are errors ${err}");
             throw;
         }
     }
 
-    public async Task<Order?> FindMyOrderById(CancellationToken ct, int id, int customerId, bool track)
+    public async Task<Order?> FindMyOrderById(
+        CancellationToken ct,
+        int id,
+        int customerId,
+        bool track)
     {
         try
         {
@@ -56,7 +90,8 @@ public class OrderService : IOrderService
             return await query
                 .Include(o => o.Transaction)
                 .Include(o => o.OrderItems)
-                .FirstOrDefaultAsync(o => o.Id.Equals(id) && o.CustomerId.Equals(customerId), ct);
+                .FirstOrDefaultAsync(o => o.Id.Equals(id) &&
+                        o.CustomerId.Equals(customerId), ct);
         }
         catch (System.Exception err)
         {
@@ -65,7 +100,10 @@ public class OrderService : IOrderService
         }
     }
 
-    public async Task<IEnumerable<Order>> FindMyOrderHistories(CancellationToken ct, int customerId, bool track)
+    public async Task<IEnumerable<Order>> FindMyOrderHistories(
+        CancellationToken ct,
+        int customerId,
+        bool track)
     {
         try
         {
@@ -90,7 +128,10 @@ public class OrderService : IOrderService
         }
     }
 
-    public async Task<Order?> FindOrderById(CancellationToken ct, int id, bool track)
+    public async Task<Order?> FindOrderById(
+        CancellationToken ct,
+        int id,
+        bool track)
     {
         try
         {
@@ -115,7 +156,9 @@ public class OrderService : IOrderService
         }
     }
 
-    public async Task<IEnumerable<Order>> FindOrders(CancellationToken ct, bool track)
+    public async Task<IEnumerable<Order>> FindOrders(
+        CancellationToken ct,
+        bool track)
     {
         try
         {

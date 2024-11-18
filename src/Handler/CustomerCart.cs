@@ -29,10 +29,11 @@ public static class CustomerCartHandler
         }
     }
 
-    public static async Task<Results<Ok<IEnumerable<CustomerCart>>, BadRequest<string>>> AddItemToCart(
+    public static async Task<Results<Ok<IEnumerable<CustomerCart>>, NotFound<string>, BadRequest<string>>> AddItemToCart(
         HttpContext httpCtx,
         CancellationToken ct,
         [FromServices] ICustomerCartService customerCartSvc,
+        [FromServices] IProductService productService,
         [FromBody] CustomerCartDTO data)
     {
         try
@@ -40,9 +41,30 @@ public static class CustomerCartHandler
             var cts = CancellationTokenSource.CreateLinkedTokenSource(ct);
             cts.CancelAfter(TimeSpan.FromSeconds(2));
 
-            var current_user = httpCtx.Items["current_user"] as Customer;
-            var myCart = await customerCartSvc.AddItemToCart(cts.Token, current_user!.Id, data);
+            var p = await productService.FindProductById(cts.Token, data.productId, false, false);
+            if (p is null)
+            {
+                return TypedResults.NotFound("Product did not found");
+            }
 
+            if (p.Stock < data.quantity)
+            {
+                return TypedResults.BadRequest("Product stock is insufficient from your product quantity request");
+            }
+
+            var current_user = httpCtx.Items["current_user"] as Customer;
+            var productIsExistInMyCart = await customerCartSvc.FindCartItemInMyCartByProductId(
+                cts.Token,
+                current_user!.Id,
+                data.productId,
+                false,
+                false);
+            if (productIsExistInMyCart is not null)
+            {
+                return TypedResults.BadRequest("The Product is already in your cart.");
+            }
+
+            var myCart = await customerCartSvc.AddItemToCart(cts.Token, current_user!.Id, data);
             return TypedResults.Ok(myCart);
         }
         catch (System.Exception err)

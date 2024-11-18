@@ -19,7 +19,7 @@ public interface IOrderService
     Task<Order> CreateOrder(
         CancellationToken ct,
         int customerId,
-        CreateOrderDTO data);
+        IEnumerable<CustomerCart> myCart);
     Task<IEnumerable<Order>> FindMyOrderHistories(
         CancellationToken ct,
         int customerId,
