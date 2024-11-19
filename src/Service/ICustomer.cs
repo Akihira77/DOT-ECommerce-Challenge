@@ -4,7 +4,7 @@ namespace ECommerce.Service;
 
 public interface ICustomerService
 {
-    Task<IEnumerable<Customer>> FindCustomers(
+    IQueryable<Customer> FindCustomers(
         CancellationToken ct,
         bool track);
     Task<Customer?> FindCustomerById(

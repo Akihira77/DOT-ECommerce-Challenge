@@ -98,7 +98,7 @@ public class CustomerService : ICustomerService
         }
     }
 
-    public async Task<IEnumerable<Customer>> FindCustomers(
+    public IQueryable<Customer> FindCustomers(
         CancellationToken ct,
         bool track)
     {
@@ -113,12 +113,12 @@ public class CustomerService : ICustomerService
                 query = query.AsNoTracking();
             }
 
-            return await query.ToListAsync(ct);
+            return query;
         }
         catch (System.Exception err)
         {
             Console.WriteLine($"There are errors {err}");
-            return [];
+            throw;
         }
     }
 

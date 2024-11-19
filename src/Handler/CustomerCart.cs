@@ -16,8 +16,8 @@ public static class CustomerCartHandler
             var cts = CancellationTokenSource.CreateLinkedTokenSource(httpCtx.RequestAborted);
             cts.CancelAfter(TimeSpan.FromSeconds(2));
 
-            var current_user = httpCtx.Items["current_user"] as Customer;
-            var myCart = await customerCartSvc.FindItemsInMyCart(cts.Token, current_user!.Id);
+            var current_user = httpCtx.Items["current_user"] as CustomerOverviewDTO;
+            var myCart = await customerCartSvc.FindItemsInMyCart(cts.Token, current_user!.id);
 
             return TypedResults.Ok(myCart);
         }
@@ -50,10 +50,10 @@ public static class CustomerCartHandler
                 return TypedResults.BadRequest("Product stock is insufficient from your product quantity request");
             }
 
-            var current_user = httpCtx.Items["current_user"] as Customer;
+            var current_user = httpCtx.Items["current_user"] as CustomerOverviewDTO;
             var productIsExistInMyCart = await customerCartSvc.FindCartItemInMyCartByProductId(
                 cts.Token,
-                current_user!.Id,
+                current_user!.id,
                 data.productId,
                 false,
                 false);
@@ -62,7 +62,7 @@ public static class CustomerCartHandler
                 return TypedResults.BadRequest("The Product is already in your cart.");
             }
 
-            var myCart = await customerCartSvc.AddItemToCart(cts.Token, current_user!.Id, data);
+            var myCart = await customerCartSvc.AddItemToCart(cts.Token, current_user!.id, data);
             return TypedResults.Ok(myCart);
         }
         catch (System.Exception err)
@@ -82,8 +82,8 @@ public static class CustomerCartHandler
             var cts = CancellationTokenSource.CreateLinkedTokenSource(httpCtx.RequestAborted);
             cts.CancelAfter(TimeSpan.FromSeconds(2));
 
-            var current_user = httpCtx.Items["current_user"] as Customer;
-            var cc = await customerCartSvc.FindCartItemInMyCartById(cts.Token, current_user!.Id, cartItemId, false, false);
+            var current_user = httpCtx.Items["current_user"] as CustomerOverviewDTO;
+            var cc = await customerCartSvc.FindCartItemInMyCartById(cts.Token, current_user!.id, cartItemId, false, false);
             if (cc is null)
             {
                 return TypedResults.NotFound("Cart Item did not found");
@@ -112,8 +112,8 @@ public static class CustomerCartHandler
             var cts = CancellationTokenSource.CreateLinkedTokenSource(httpCtx.RequestAborted);
             cts.CancelAfter(TimeSpan.FromSeconds(2));
 
-            var current_user = httpCtx.Items["current_user"] as Customer;
-            var cc = await customerCartSvc.FindCartItemInMyCartById(cts.Token, current_user!.Id, cartItemId, false, true);
+            var current_user = httpCtx.Items["current_user"] as CustomerOverviewDTO;
+            var cc = await customerCartSvc.FindCartItemInMyCartById(cts.Token, current_user!.id, cartItemId, false, true);
             if (cc is null)
             {
                 return TypedResults.NotFound("Cart Item did not found");

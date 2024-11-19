@@ -9,7 +9,7 @@ public static class AuthenticationValidationMiddleware
     {
         return async invocationContext =>
         {
-            var current_user = invocationContext.HttpContext.Items["current_user"] as Customer;
+            var current_user = invocationContext.HttpContext.Items["current_user"] as CustomerOverviewDTO;
             if (current_user is not null)
             {
                 return await next(invocationContext);
@@ -24,8 +24,8 @@ public static class AuthenticationValidationMiddleware
     {
         return async invocationContext =>
         {
-            var current_user = invocationContext.HttpContext.Items["current_user"] as Customer;
-            if (current_user is not null && current_user.Role.Equals(UserRoles.ADMIN))
+            var current_user = invocationContext.HttpContext.Items["current_user"] as CustomerOverviewDTO;
+            if (current_user is not null && current_user.role.Equals(UserRoles.ADMIN))
             {
                 return await next(invocationContext);
             }

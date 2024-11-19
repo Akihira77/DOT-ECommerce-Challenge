@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using Riok.Mapperly.Abstractions;
 
 namespace ECommerce.Types;
 
@@ -45,9 +46,17 @@ public enum ChangeItemQuantity
 }
 
 // DTO excluding password
+public record CustomerOverviewDTO(int id, string name, string email, UserRoles role);
 public record LoginDTO(string email, string password);
 public record CreateCustomerDTO(string name, string email, string password);
 public record CreateCustomerAndCustomerAddressDTO(CreateCustomerDTO custData, UpsertCustomerAddressDTO? addrData);
 public record EditCustomerDTO(string name, string email, UserRoles role);
 public record EditCustomerAndCustomerAddressDTO(EditCustomerDTO custData, CustomerAddress? addrData);
 public record CustomerCartDTO(int productId, int quantity);
+
+[Mapper]
+public static partial class CustomerMapper
+{
+    public static partial CustomerOverviewDTO ToCustomerOverviewDTO(this Customer c);
+    public static partial IQueryable<CustomerOverviewDTO> ToCustomersOverviewDTO(this IQueryable<Customer> c);
+}

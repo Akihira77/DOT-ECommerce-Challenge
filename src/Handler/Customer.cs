@@ -3,12 +3,13 @@ using ECommerce.Types;
 using ECommerce.Util;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace ECommerce.Handler;
 
 public static class CustomerHandler
 {
-    public static async Task<Results<Ok<IEnumerable<Customer>>, BadRequest<string>>> FindCustomers(
+    public static async Task<Results<Ok<IEnumerable<CustomerOverviewDTO>>, BadRequest<string>>> FindCustomers(
         HttpContext httpCtx,
         [FromServices] ICustomerService customerSvc)
     {
@@ -17,9 +18,12 @@ public static class CustomerHandler
             var cts = CancellationTokenSource.CreateLinkedTokenSource(httpCtx.RequestAborted);
             cts.CancelAfter(TimeSpan.FromSeconds(2));
 
-            var customers = await customerSvc.FindCustomers(cts.Token, false);
+            var queryable = customerSvc.FindCustomers(cts.Token, false);
+            var customers = await queryable
+                .ToCustomersOverviewDTO()
+                .ToListAsync();
 
-            return TypedResults.Ok(customers);
+            return TypedResults.Ok(customers.AsEnumerable());
         }
         catch (System.Exception err)
         {
@@ -28,7 +32,7 @@ public static class CustomerHandler
         }
     }
 
-    public static async Task<Results<Ok<Customer>, NotFound<string>, BadRequest<string>>> FindCustomerById(
+    public static async Task<Results<Ok<CustomerOverviewDTO>, NotFound<string>, BadRequest<string>>> FindCustomerById(
         HttpContext httpCtx,
         [FromServices] ICustomerService customerSvc,
         [FromRoute] int id)
@@ -44,7 +48,7 @@ public static class CustomerHandler
                 return TypedResults.NotFound("User did not found");
             }
 
-            return TypedResults.Ok(c);
+            return TypedResults.Ok(c.ToCustomerOverviewDTO());
         }
         catch (System.Exception err)
         {
@@ -62,8 +66,8 @@ public static class CustomerHandler
             var cts = CancellationTokenSource.CreateLinkedTokenSource(httpCtx.RequestAborted);
             cts.CancelAfter(TimeSpan.FromSeconds(2));
 
-            var current_user = httpCtx.Items["current_user"] as Customer;
-            var c = await customerSvc.FindCustomerById(cts.Token, current_user!.Id, false);
+            var current_user = httpCtx.Items["current_user"] as CustomerOverviewDTO;
+            var c = await customerSvc.FindCustomerById(cts.Token, current_user!.id, false);
 
             return TypedResults.Ok(c);
         }
@@ -166,8 +170,10 @@ public static class CustomerHandler
             var cts = CancellationTokenSource.CreateLinkedTokenSource(httpCtx.RequestAborted);
             cts.CancelAfter(TimeSpan.FromSeconds(2));
 
-            var current_user = httpCtx.Items["current_user"] as Customer;
-            var c = await customerSvc.EditCustomer(cts.Token, data.custData, current_user!, data.addrData);
+            var current_user = httpCtx.Items["current_user"] as CustomerOverviewDTO;
+            var c = await customerSvc.FindCustomerById(cts.Token, current_user!.id, false);
+            c = await customerSvc.EditCustomer(cts.Token, data.custData, c!, data.addrData);
+
             return TypedResults.Ok(c);
         }
         catch (System.Exception err)
@@ -187,8 +193,8 @@ public static class CustomerHandler
             var cts = CancellationTokenSource.CreateLinkedTokenSource(httpCtx.RequestAborted);
             cts.CancelAfter(TimeSpan.FromSeconds(2));
 
-            var current_user = httpCtx.Items["current_user"] as Customer;
-            var c = await customerSvc.AddCustomerAddress(cts.Token, current_user!.Id, addrData);
+            var current_user = httpCtx.Items["current_user"] as CustomerOverviewDTO;
+            var c = await customerSvc.AddCustomerAddress(cts.Token, current_user!.id, addrData);
             if (!c)
             {
                 return TypedResults.BadRequest("Adding New Customer Address is failed");

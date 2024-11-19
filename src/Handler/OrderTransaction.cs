@@ -21,8 +21,8 @@ public static class OrderHandler
             var cts = CancellationTokenSource.CreateLinkedTokenSource(httpCtx.RequestAborted);
             cts.CancelAfter(TimeSpan.FromSeconds(2));
 
-            var current_user = httpCtx.Items["current_user"] as Customer;
-            var o = await orderSvc.FindMyOrderById(cts.Token, orderId, current_user!.Id, false);
+            var current_user = httpCtx.Items["current_user"] as CustomerOverviewDTO;
+            var o = await orderSvc.FindMyOrderById(cts.Token, orderId, current_user!.id, false);
             if (o is null)
             {
                 return TypedResults.NotFound("Order did not found");
@@ -63,14 +63,14 @@ public static class OrderHandler
             var cts = CancellationTokenSource.CreateLinkedTokenSource(httpCtx.RequestAborted);
             cts.CancelAfter(TimeSpan.FromSeconds(3));
 
-            var current_user = httpCtx.Items["current_user"] as Customer;
-            var myCart = await customerCartSvc.FindItemsInMyCart(cts.Token, current_user!.Id);
+            var current_user = httpCtx.Items["current_user"] as CustomerOverviewDTO;
+            var myCart = await customerCartSvc.FindItemsInMyCart(cts.Token, current_user!.id);
             if (!myCart.Any())
             {
                 return TypedResults.BadRequest("Your cart is empty");
             }
 
-            var o = await orderSvc.CreateOrder(cts.Token, current_user!.Id, myCart);
+            var o = await orderSvc.CreateOrder(cts.Token, current_user!.id, myCart);
 
             return TypedResults.Created(httpCtx.Request.Path, o);
         }
@@ -139,8 +139,8 @@ public static class OrderHandler
             cts.CancelAfter(TimeSpan.FromSeconds(2));
 
             var os = orderStatus.ToEnumOrDefault<OrderStatus>();
-            var current_user = httpCtx.Items["current_user"] as Customer;
-            var orders = await orderSvc.FindMyOrderHistories(cts.Token, current_user!.Id, os, false);
+            var current_user = httpCtx.Items["current_user"] as CustomerOverviewDTO;
+            var orders = await orderSvc.FindMyOrderHistories(cts.Token, current_user!.id, os, false);
 
             return TypedResults.Ok(orders);
         }
@@ -161,8 +161,8 @@ public static class OrderHandler
             var cts = CancellationTokenSource.CreateLinkedTokenSource(httpCtx.RequestAborted);
             cts.CancelAfter(TimeSpan.FromSeconds(2));
 
-            var current_user = httpCtx.Items["current_user"] as Customer;
-            var o = await orderSvc.FindMyOrderById(cts.Token, id, current_user!.Id, false);
+            var current_user = httpCtx.Items["current_user"] as CustomerOverviewDTO;
+            var o = await orderSvc.FindMyOrderById(cts.Token, id, current_user!.id, false);
             if (o is null)
             {
                 return TypedResults.NotFound($"Order {id} did not found");
