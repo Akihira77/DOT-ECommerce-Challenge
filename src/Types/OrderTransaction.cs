@@ -15,16 +15,16 @@ public class OrderTransaction
 
 public enum PaymentMethod
 {
-    BANK,
-    CREDIT_CARD,
-    E_WALLET
+    BANK = 0,
+    CREDIT_CARD = 1,
+    E_WALLET = 2
 }
 
 public enum PaymentStatus
 {
-    PENDING,
-    FAILED,
-    SUCCESS
+    PENDING = 0,
+    FAILED = 1,
+    SUCCESS = 2
 }
 
-public record PayingOrderDTO(PaymentMethod paymentMethod);
+public record PayingOrderDTO(string paymentMethod);

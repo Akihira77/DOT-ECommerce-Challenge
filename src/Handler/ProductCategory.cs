@@ -8,13 +8,13 @@ namespace ECommerce.Handler;
 public static class ProductCategoryHandler
 {
     public static async Task<Results<Ok<IEnumerable<ProductCategory>>, BadRequest<string>>> FindProductCategories(
-        CancellationToken ct,
+        HttpContext httpCtx,
         [FromServices] IProductCategoryService productCategorySvc,
         [FromQuery] bool includeProducts = false)
     {
         try
         {
-            var cts = CancellationTokenSource.CreateLinkedTokenSource(ct);
+            var cts = CancellationTokenSource.CreateLinkedTokenSource(httpCtx.RequestAborted);
             cts.CancelAfter(TimeSpan.FromSeconds(2));
 
             var productCategories = await productCategorySvc.FindProductCategories(cts.Token, false, includeProducts);
@@ -29,14 +29,14 @@ public static class ProductCategoryHandler
     }
 
     public static async Task<Results<Ok<ProductCategory>, NotFound<string>, BadRequest<string>>> FindProductCategoryById(
-        CancellationToken ct,
+        HttpContext httpCtx,
         [FromServices] IProductCategoryService productCategorySvc,
         [FromRoute] int id,
         [FromQuery] bool includeProducts = false)
     {
         try
         {
-            var cts = CancellationTokenSource.CreateLinkedTokenSource(ct);
+            var cts = CancellationTokenSource.CreateLinkedTokenSource(httpCtx.RequestAborted);
             cts.CancelAfter(TimeSpan.FromSeconds(2));
 
             var productCategory = await productCategorySvc.FindProductCategoryById(cts.Token, id, false, includeProducts);
@@ -55,14 +55,13 @@ public static class ProductCategoryHandler
     }
 
     public static async Task<Results<Created<ProductCategory>, BadRequest<string>>> CreateProductCategory(
-        CancellationToken ct,
         HttpContext httpCtx,
         [FromServices] IProductCategoryService productCategorySvc,
         [FromBody] UpsertProductCategoryDTO data)
     {
         try
         {
-            var cts = CancellationTokenSource.CreateLinkedTokenSource(ct);
+            var cts = CancellationTokenSource.CreateLinkedTokenSource(httpCtx.RequestAborted);
             cts.CancelAfter(TimeSpan.FromSeconds(2));
 
             var productCategory = await productCategorySvc.CreateProductCategory(cts.Token, data);
@@ -78,14 +77,13 @@ public static class ProductCategoryHandler
 
     public static async Task<Results<Ok<ProductCategory>, NotFound<string>, BadRequest<string>>> EditProductCategory(
         HttpContext httpCtx,
-        CancellationToken ct,
         [FromServices] IProductCategoryService productCategorySvc,
         [FromRoute] int categoryId,
         [FromBody] UpsertProductCategoryDTO data)
     {
         try
         {
-            var cts = CancellationTokenSource.CreateLinkedTokenSource(ct);
+            var cts = CancellationTokenSource.CreateLinkedTokenSource(httpCtx.RequestAborted);
             cts.CancelAfter(TimeSpan.FromSeconds(2));
 
             var productCategory = await productCategorySvc.FindProductCategoryById(cts.Token, categoryId, false, false);
@@ -107,13 +105,12 @@ public static class ProductCategoryHandler
 
     public static async Task<Results<Ok<string>, NotFound<string>, BadRequest<string>>> DeleteProductCategory(
         HttpContext httpCtx,
-        CancellationToken ct,
         [FromServices] IProductCategoryService productCategorySvc,
         [FromRoute] int categoryId)
     {
         try
         {
-            var cts = CancellationTokenSource.CreateLinkedTokenSource(ct);
+            var cts = CancellationTokenSource.CreateLinkedTokenSource(httpCtx.RequestAborted);
             cts.CancelAfter(TimeSpan.FromSeconds(2));
 
             var productCategory = await productCategorySvc.FindProductCategoryById(cts.Token, categoryId, false, false);

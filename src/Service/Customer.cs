@@ -1,5 +1,6 @@
 using ECommerce.Store;
 using ECommerce.Types;
+using ECommerce.Util;
 using Microsoft.EntityFrameworkCore;
 
 namespace ECommerce.Service;
@@ -8,7 +9,9 @@ public class CustomerService : ICustomerService
 {
     private readonly ApplicationDbContext ctx;
     private readonly PasswordService passwordSvc;
-    public CustomerService(ApplicationDbContext ctx, PasswordService passwordSvc)
+    public CustomerService(
+        ApplicationDbContext ctx,
+        PasswordService passwordSvc)
     {
         this.ctx = ctx;
         this.passwordSvc = passwordSvc;

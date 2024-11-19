@@ -9,12 +9,11 @@ public static class CustomerCartHandler
 {
     public static async Task<Results<Ok<IEnumerable<CustomerCart>>, BadRequest<string>>> FindMyCart(
         HttpContext httpCtx,
-        CancellationToken ct,
         [FromServices] ICustomerCartService customerCartSvc)
     {
         try
         {
-            var cts = CancellationTokenSource.CreateLinkedTokenSource(ct);
+            var cts = CancellationTokenSource.CreateLinkedTokenSource(httpCtx.RequestAborted);
             cts.CancelAfter(TimeSpan.FromSeconds(2));
 
             var current_user = httpCtx.Items["current_user"] as Customer;
@@ -31,14 +30,13 @@ public static class CustomerCartHandler
 
     public static async Task<Results<Ok<IEnumerable<CustomerCart>>, NotFound<string>, BadRequest<string>>> AddItemToCart(
         HttpContext httpCtx,
-        CancellationToken ct,
         [FromServices] ICustomerCartService customerCartSvc,
         [FromServices] IProductService productService,
         [FromBody] CustomerCartDTO data)
     {
         try
         {
-            var cts = CancellationTokenSource.CreateLinkedTokenSource(ct);
+            var cts = CancellationTokenSource.CreateLinkedTokenSource(httpCtx.RequestAborted);
             cts.CancelAfter(TimeSpan.FromSeconds(2));
 
             var p = await productService.FindProductById(cts.Token, data.productId, false, false);
@@ -76,13 +74,12 @@ public static class CustomerCartHandler
 
     public static async Task<Results<Ok<IEnumerable<CustomerCart>>, NotFound<string>, BadRequest<string>>> RemoveItemToCart(
         HttpContext httpCtx,
-        CancellationToken ct,
         [FromServices] ICustomerCartService customerCartSvc,
         [FromRoute] int cartItemId)
     {
         try
         {
-            var cts = CancellationTokenSource.CreateLinkedTokenSource(ct);
+            var cts = CancellationTokenSource.CreateLinkedTokenSource(httpCtx.RequestAborted);
             cts.CancelAfter(TimeSpan.FromSeconds(2));
 
             var current_user = httpCtx.Items["current_user"] as Customer;
@@ -105,7 +102,6 @@ public static class CustomerCartHandler
 
     public static async Task<Results<Ok<CustomerCart>, Ok<string>, NotFound<string>, BadRequest<string>>> EditItemQuantity(
         HttpContext httpCtx,
-        CancellationToken ct,
         [FromServices] ICustomerCartService customerCartSvc,
         [FromRoute] int cartItemId,
         [FromBody] int quantity,
@@ -113,7 +109,7 @@ public static class CustomerCartHandler
     {
         try
         {
-            var cts = CancellationTokenSource.CreateLinkedTokenSource(ct);
+            var cts = CancellationTokenSource.CreateLinkedTokenSource(httpCtx.RequestAborted);
             cts.CancelAfter(TimeSpan.FromSeconds(2));
 
             var current_user = httpCtx.Items["current_user"] as Customer;

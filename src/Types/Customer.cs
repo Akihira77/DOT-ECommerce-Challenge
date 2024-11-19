@@ -20,8 +20,8 @@ public class Customer
 
 public enum UserRoles
 {
-    CUSTOMER,
-    ADMIN
+    CUSTOMER = 0,
+    ADMIN = 1
 }
 
 public class CustomerCart

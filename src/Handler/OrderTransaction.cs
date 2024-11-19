@@ -1,5 +1,6 @@
 using ECommerce.Service;
 using ECommerce.Types;
+using ECommerce.Util;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 
@@ -9,15 +10,14 @@ public static class OrderHandler
 {
     public static async Task<Results<Ok<OrderTransaction>, NotFound<string>, BadRequest<string>>> PayingOrder(
         HttpContext httpCtx,
-        CancellationToken ct,
         [FromServices] IOrderService orderSvc,
         [FromServices] IOrderTransactionService orderTransactionSvc,
         [FromRoute] int orderId,
-        [FromBody] PayingOrderDTO data)
+        [FromBody] PayingOrderDTO body)
     {
         try
         {
-            var cts = CancellationTokenSource.CreateLinkedTokenSource(ct);
+            var cts = CancellationTokenSource.CreateLinkedTokenSource(httpCtx.RequestAborted);
             cts.CancelAfter(TimeSpan.FromSeconds(2));
 
             var current_user = httpCtx.Items["current_user"] as Customer;
@@ -29,10 +29,11 @@ public static class OrderHandler
 
             if (!o.OrderStatus.Equals(OrderStatus.WAITING_PAYMENT))
             {
-                return TypedResults.BadRequest("This order already being processed");
+                return TypedResults.BadRequest("Your order is not in WAITING PAYMENT status. Please check again");
             }
 
-            var ot = await orderTransactionSvc.PayingOrder(cts.Token, data, o);
+            var pm = body.paymentMethod.ToEnumOrThrow<PaymentMethod>();
+            var ot = await orderTransactionSvc.PayingOrder(cts.Token, pm, o);
 
             return TypedResults.Ok(ot);
         }
@@ -45,13 +46,12 @@ public static class OrderHandler
 
     public static async Task<Results<Created<Order>, BadRequest<string>>> CreateOrder(
         HttpContext httpCtx,
-        CancellationToken ct,
         [FromServices] IOrderService orderSvc,
         [FromServices] ICustomerCartService customerCartSvc)
     {
         try
         {
-            var cts = CancellationTokenSource.CreateLinkedTokenSource(ct);
+            var cts = CancellationTokenSource.CreateLinkedTokenSource(httpCtx.RequestAborted);
             cts.CancelAfter(TimeSpan.FromSeconds(3));
 
             var current_user = httpCtx.Items["current_user"] as Customer;
@@ -74,17 +74,19 @@ public static class OrderHandler
     }
 
     public static async Task<Results<Ok<IEnumerable<Order>>, BadRequest<string>>> FindOrders(
-        CancellationToken ct,
-        [FromServices] IOrderService orderSvc)
+        HttpContext httpCtx,
+        [FromServices] IOrderService orderSvc,
+        [FromQuery] string orderStatus = "ALL")
     {
         try
         {
-            var cts = CancellationTokenSource.CreateLinkedTokenSource(ct);
+            var cts = CancellationTokenSource.CreateLinkedTokenSource(httpCtx.RequestAborted);
             cts.CancelAfter(TimeSpan.FromSeconds(2));
 
-            var os = await orderSvc.FindOrders(cts.Token, false);
+            var os = orderStatus.ToEnumOrDefault<OrderStatus>();
+            var orders = await orderSvc.FindOrders(cts.Token, os, false);
 
-            return TypedResults.Ok(os);
+            return TypedResults.Ok(orders);
         }
         catch (System.Exception err)
         {
@@ -94,13 +96,13 @@ public static class OrderHandler
     }
 
     public static async Task<Results<Ok<Order>, BadRequest<string>>> FindOrderById(
-        CancellationToken ct,
+        HttpContext httpCtx,
         [FromServices] IOrderService orderSvc,
         [FromRoute] int id)
     {
         try
         {
-            var cts = CancellationTokenSource.CreateLinkedTokenSource(ct);
+            var cts = CancellationTokenSource.CreateLinkedTokenSource(httpCtx.RequestAborted);
             cts.CancelAfter(TimeSpan.FromSeconds(2));
 
             var o = await orderSvc.FindOrderById(cts.Token, id, false);
@@ -116,18 +118,19 @@ public static class OrderHandler
 
     public static async Task<Results<Ok<IEnumerable<Order>>, BadRequest<string>>> FindMyOrderHistories(
         HttpContext httpCtx,
-        CancellationToken ct,
-        [FromServices] IOrderService orderSvc)
+        [FromServices] IOrderService orderSvc,
+        [FromQuery] string orderStatus = "ALL")
     {
         try
         {
-            var cts = CancellationTokenSource.CreateLinkedTokenSource(ct);
+            var cts = CancellationTokenSource.CreateLinkedTokenSource(httpCtx.RequestAborted);
             cts.CancelAfter(TimeSpan.FromSeconds(2));
 
+            var os = orderStatus.ToEnumOrDefault<OrderStatus>();
             var current_user = httpCtx.Items["current_user"] as Customer;
-            var os = await orderSvc.FindMyOrderHistories(cts.Token, current_user!.Id, false);
+            var orders = await orderSvc.FindMyOrderHistories(cts.Token, current_user!.Id, os, false);
 
-            return TypedResults.Ok(os);
+            return TypedResults.Ok(orders);
         }
         catch (System.Exception err)
         {
@@ -138,13 +141,12 @@ public static class OrderHandler
 
     public static async Task<Results<Ok<Order>, BadRequest<string>>> FindMyOrderById(
         HttpContext httpCtx,
-        CancellationToken ct,
         [FromServices] IOrderService orderSvc,
         [FromRoute] int id)
     {
         try
         {
-            var cts = CancellationTokenSource.CreateLinkedTokenSource(ct);
+            var cts = CancellationTokenSource.CreateLinkedTokenSource(httpCtx.RequestAborted);
             cts.CancelAfter(TimeSpan.FromSeconds(2));
 
             var current_user = httpCtx.Items["current_user"] as Customer;

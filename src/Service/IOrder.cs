@@ -10,6 +10,7 @@ public interface IOrderService
 {
     Task<IEnumerable<Order>> FindOrders(
         CancellationToken ct,
+        OrderStatus? os,
         bool track);
     Task<Order?> FindOrderById(
         CancellationToken ct,
@@ -23,6 +24,7 @@ public interface IOrderService
     Task<IEnumerable<Order>> FindMyOrderHistories(
         CancellationToken ct,
         int customerId,
+        OrderStatus? os,
         bool track);
     Task<Order?> FindMyOrderById(
         CancellationToken ct,

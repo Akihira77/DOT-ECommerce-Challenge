@@ -2,6 +2,7 @@ namespace ECommerce.Middleware;
 
 using System.Security.Claims;
 using ECommerce.Service;
+using ECommerce.Util;
 
 public class ExtractUserDataFromCookie
 {

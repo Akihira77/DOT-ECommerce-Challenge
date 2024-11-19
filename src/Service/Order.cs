@@ -23,11 +23,13 @@ public class OrderService : IOrderService
         {
             ct.ThrowIfCancellationRequested();
 
+            var now = DateTime.Now;
             var o = new Order
             {
                 CustomerId = customerId,
                 OrderStatus = OrderStatus.WAITING_PAYMENT,
-                CreatedAt = DateTime.Now,
+                CreatedAt = now,
+                Deadline = now.AddDays(1),
                 Amount = myCart.Sum(cc => cc.Product!.Price * cc.Quantity),
             };
             await this.ctx.Orders.AddAsync(o, ct);
@@ -146,6 +148,7 @@ public class OrderService : IOrderService
     public async Task<IEnumerable<Order>> FindMyOrderHistories(
         CancellationToken ct,
         int customerId,
+        OrderStatus? os,
         bool track)
     {
         try
@@ -157,6 +160,11 @@ public class OrderService : IOrderService
             if (!track)
             {
                 query = query.AsNoTracking();
+            }
+
+            if (os is not null)
+            {
+                query = query.Where(o => o.OrderStatus.Equals(os));
             }
 
             return await query
@@ -201,6 +209,7 @@ public class OrderService : IOrderService
 
     public async Task<IEnumerable<Order>> FindOrders(
         CancellationToken ct,
+        OrderStatus? os,
         bool track)
     {
         try
@@ -212,6 +221,11 @@ public class OrderService : IOrderService
             if (!track)
             {
                 query = query.AsNoTracking();
+            }
+
+            if (os is not null)
+            {
+                query = query.Where(o => o.OrderStatus.Equals(os));
             }
 
             return await query

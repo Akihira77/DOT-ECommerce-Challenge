@@ -15,7 +15,7 @@ public class OrderTransactionService : IOrderTransactionService
     //TODO: PERFORM CONDITION BASED PAYMENT METHOD
     public async Task<OrderTransaction> PayingOrder(
         CancellationToken ct,
-        PayingOrderDTO data,
+        PaymentMethod pm,
         Order o)
     {
         using var tx = this.ctx.Database.BeginTransaction(System.Data.IsolationLevel.RepeatableRead);
@@ -27,7 +27,7 @@ public class OrderTransactionService : IOrderTransactionService
             {
                 OrderId = o.Id,
                 Order = o,
-                PaymentMethod = data.paymentMethod,
+                PaymentMethod = pm,
                 PaymentStatus = PaymentStatus.SUCCESS
             };
             await this.ctx.OrderTransactions.AddAsync(ot, ct);

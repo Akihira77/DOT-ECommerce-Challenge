@@ -11,6 +11,7 @@ public class Order
     [Column(TypeName = "decimal(18,4)")]
     public decimal Amount { get; set; }
     public DateTime CreatedAt { get; set; }
+    public DateTime Deadline { get; set; }
 
     public int CustomerId { get; set; }
     public Customer? Customer { get; set; }
@@ -22,10 +23,10 @@ public class Order
 
 public enum OrderStatus
 {
-    WAITING_PAYMENT,
-    PROCESS,
-    SHIP,
-    COMPLETE
+    WAITING_PAYMENT = 0,
+    PROCESS = 1,
+    SHIP = 2,
+    COMPLETE = 3
 }
 
 public class OrderItem
@@ -43,3 +44,4 @@ public class OrderItem
 
 public record CreateOrderDTO(IEnumerable<CustomerCartDTO> myCart);
 public record OrderJob(int orderId, int customerId, IEnumerable<CustomerCart> myCart);
+public record FindOrderQueryDTO(string orderStatus);

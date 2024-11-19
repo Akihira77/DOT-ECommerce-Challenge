@@ -1,3 +1,4 @@
+namespace ECommerce.Util;
 using Microsoft.AspNetCore.Identity;
 
 public class PasswordService

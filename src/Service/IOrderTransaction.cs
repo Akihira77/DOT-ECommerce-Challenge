@@ -10,6 +10,6 @@ public interface IOrderTransactionService
     //INFO: CUSTOMER
     Task<OrderTransaction> PayingOrder(
         CancellationToken ct,
-        PayingOrderDTO data,
+        PaymentMethod pm,
         Order o);
 }
