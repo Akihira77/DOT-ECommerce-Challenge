@@ -12,7 +12,8 @@
 uploads
 uploads
 docker*
-src/appsettings*
+src/appsettings.Development.json
+src/appsettings.json
 
 # user-specific files (monodevelop/xamarin studio)
 *.userprefs
