@@ -125,7 +125,7 @@ public static class CustomerHandler
         }
     }
 
-    public static async Task<Results<Ok<Customer>, NotFound<string>, BadRequest<string>>> Login(
+    public static async Task<Results<Ok<CustomerOverviewDTO>, NotFound<string>, BadRequest<string>>> Login(
         HttpContext httpCtx,
         [FromServices] ICustomerService customerSvc,
         [FromServices] JwtService jwtSvc,
@@ -151,7 +151,7 @@ public static class CustomerHandler
                 Expires = DateTime.Now.AddDays(1)
             });
 
-            return TypedResults.Ok(c);
+            return TypedResults.Ok(c.ToCustomerOverviewDTO());
         }
         catch (System.Exception err)
         {
