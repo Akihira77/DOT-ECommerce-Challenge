@@ -10,6 +10,9 @@ public static class ProductHandler
     public static async Task<Results<Ok<IEnumerable<Product>>, BadRequest<string>>> FindProducts(
         HttpContext httpCtx,
         [FromServices] IProductService productSvc,
+        [FromQuery] string name = "",
+        [FromQuery] decimal minPrice = 0,
+        [FromQuery] decimal maxPrice = Int32.MaxValue,
         [FromQuery] bool includeProductCategory = false)
     {
         try
@@ -17,7 +20,8 @@ public static class ProductHandler
             var cts = CancellationTokenSource.CreateLinkedTokenSource(httpCtx.RequestAborted);
             cts.CancelAfter(TimeSpan.FromSeconds(2));
 
-            var ps = await productSvc.FindProducts(cts.Token, false, includeProductCategory);
+            var query = new FindProductsQueryDTO(name, minPrice, maxPrice, includeProductCategory);
+            var ps = await productSvc.FindProducts(cts.Token, false, query);
 
             return TypedResults.Ok(ps);
         }

@@ -12,6 +12,7 @@ public class Order
     public decimal Amount { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime Deadline { get; set; }
+    public int Version { get; set; }
 
     public int CustomerId { get; set; }
     public Customer? Customer { get; set; }
@@ -45,3 +46,4 @@ public class OrderItem
 public record CreateOrderDTO(IEnumerable<CustomerCartDTO> myCart);
 public record OrderJob(int orderId, int customerId, IEnumerable<CustomerCart> myCart);
 public record FindOrderQueryDTO(string orderStatus);
+public record UpdateOrderDTO(string orderStatus);

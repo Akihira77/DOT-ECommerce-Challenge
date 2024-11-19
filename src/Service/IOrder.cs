@@ -8,6 +8,7 @@ namespace ECommerce.Service;
 //
 public interface IOrderService
 {
+    //NOTE: ADMIN
     Task<IEnumerable<Order>> FindOrders(
         CancellationToken ct,
         OrderStatus? os,
@@ -16,7 +17,12 @@ public interface IOrderService
         CancellationToken ct,
         int id,
         bool track);
+    Task<Order> UpdateOrderStatus(
+        CancellationToken ct,
+        Order o,
+        UpdateOrderDTO data);
 
+    //NOTE: CUSTOMER
     Task<Order> CreateOrder(
         CancellationToken ct,
         int customerId,

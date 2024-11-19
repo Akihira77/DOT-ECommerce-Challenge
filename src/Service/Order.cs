@@ -1,5 +1,6 @@
 using ECommerce.Store;
 using ECommerce.Types;
+using ECommerce.Util;
 using Microsoft.EntityFrameworkCore;
 
 namespace ECommerce.Service;
@@ -31,6 +32,7 @@ public class OrderService : IOrderService
                 CreatedAt = now,
                 Deadline = now.AddDays(1),
                 Amount = myCart.Sum(cc => cc.Product!.Price * cc.Quantity),
+                Version = 1,
             };
             await this.ctx.Orders.AddAsync(o, ct);
 
@@ -73,8 +75,9 @@ public class OrderService : IOrderService
                 .Select(cc => cc.ProductId)
                 .ToList();
             var products = await this.ctx.Products
-                .FromSqlInterpolated(
-                    $"SELECT * FROM Products WITH (UPDLOCK, ROWLOCK) WHERE Id IN ({string.Join(",", productIds)})"
+                .FromSqlInterpolated($@"
+                        SELECT * FROM Products WITH (UPDLOCK, ROWLOCK) 
+                        WHERE Id IN ({string.Join(",", productIds)})"
                 )
                 .ToDictionaryAsync(p => p.Id, ct);
 
@@ -232,6 +235,39 @@ public class OrderService : IOrderService
                 .Include(o => o.OrderTransaction)
                 .Include(o => o.Customer)
                 .ToListAsync(ct);
+        }
+        catch (System.Exception err)
+        {
+            Console.WriteLine($"There are errors ${err}");
+            throw;
+        }
+    }
+
+    public async Task<Order> UpdateOrderStatus(
+        CancellationToken ct,
+        Order o,
+        UpdateOrderDTO data)
+    {
+        try
+        {
+            var orderStatus = data.orderStatus.ToEnumOrThrow<OrderStatus>();
+            var updatedOrder = await this
+                .ctx
+                .Orders
+                .FromSqlInterpolated($@"
+                        UPDATE Orders 
+                        SET Status = {orderStatus}, Version = Version + 1 
+                        OUTPUT INSERTED.*
+                        WHERE OrderID = {o.Id} AND Version = {o.Version}"
+                )
+                .FirstOrDefaultAsync(ct);
+
+            if (updatedOrder is null)
+            {
+                throw new InvalidOperationException("The order was modified by another user.");
+            }
+
+            return updatedOrder;
         }
         catch (System.Exception err)
         {

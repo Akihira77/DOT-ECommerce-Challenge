@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Microsoft.AspNetCore.Mvc;
 
 namespace ECommerce.Types;
 
@@ -20,5 +21,19 @@ public class Product
     public ICollection<CustomerCart> CustomerCarts { get; set; } = new List<CustomerCart>();
 }
 
-public record CreateProductDTO(string name, decimal price, int stock, string description, int productCategoryId);
-public record EditProductDTO(string name, decimal price, int stock, string description);
+public record CreateProductDTO(
+    string name,
+    decimal price,
+    int stock,
+    string description,
+    int productCategoryId);
+public record EditProductDTO(
+    string name,
+    decimal price,
+    int stock,
+    string description);
+public record FindProductsQueryDTO(
+    string name,
+    decimal minPrice,
+    decimal maxPrice,
+    bool includeProductCategory);

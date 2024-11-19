@@ -7,7 +7,7 @@ public interface IProductService
     Task<IEnumerable<Product>> FindProducts(
         CancellationToken ct,
         bool track,
-        bool includeProductCategory);
+        FindProductsQueryDTO q);
     Task<Product?> FindProductById(
         CancellationToken ct,
         int id,

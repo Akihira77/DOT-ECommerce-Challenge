@@ -136,7 +136,7 @@ public class ProductService : IProductService
     public async Task<IEnumerable<Product>> FindProducts(
         CancellationToken ct,
         bool track,
-        bool includeProductCategory)
+        FindProductsQueryDTO q)
     {
         try
         {
@@ -149,12 +149,16 @@ public class ProductService : IProductService
                 query = query.AsNoTracking();
             }
 
-            if (includeProductCategory)
+            if (q.includeProductCategory)
             {
                 query = query.Include(p => p.ProductCategory);
             }
 
-            return await query.ToListAsync(ct);
+            return await query
+                .Where(p => EF.Functions.Like(p.Name, $"{q.name}%") &&
+                        p.Price >= q.minPrice &&
+                        p.Price <= q.maxPrice)
+                .ToListAsync(ct);
         }
         catch (System.Exception err)
         {
