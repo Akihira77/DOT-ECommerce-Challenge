@@ -9,12 +9,15 @@ public class CustomerService : ICustomerService
 {
     private readonly ApplicationDbContext ctx;
     private readonly PasswordService passwordSvc;
+    private readonly EmailBackgroundService emailBackgroundSvc;
     public CustomerService(
         ApplicationDbContext ctx,
-        PasswordService passwordSvc)
+        PasswordService passwordSvc,
+        EmailBackgroundService emailSender)
     {
         this.ctx = ctx;
         this.passwordSvc = passwordSvc;
+        this.emailBackgroundSvc = emailSender;
     }
 
     public async Task<Customer?> FindCustomerById(
@@ -157,6 +160,9 @@ public class CustomerService : ICustomerService
             }
 
             await this.ctx.SaveChangesAsync(ct);
+
+            await this.emailBackgroundSvc.QueueEmail(new sendEmailData(c.Email, "Email Verification", $"Verification your email {c.Email}"));
+
             await tx.CommitAsync(ct);
             return c;
         }

@@ -21,7 +21,8 @@ public class ExtractUserDataFromCookie
     {
         try
         {
-            var cts = new CancellationTokenSource(TimeSpan.FromSeconds(2));
+            var cts = CancellationTokenSource.CreateLinkedTokenSource(httpCtx.RequestAborted);
+            cts.CancelAfter(TimeSpan.FromSeconds(2));
 
             var token = httpCtx.Request.Cookies["token"];
             if (!string.IsNullOrEmpty(token))

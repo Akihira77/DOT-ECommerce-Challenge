@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Http.Json;
 using Microsoft.AspNetCore.HttpLogging;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -55,6 +56,14 @@ builder.Services.AddRateLimiter(conf =>
 });
 
 
+builder.Services.Configure<EmailConfiguration>(
+    builder.Configuration.GetSection("EtherealEmailConfiguration"));
+builder.Services.AddSingleton(resolver =>
+    resolver.GetRequiredService<IOptions<EmailConfiguration>>().Value);
+builder.Services.AddSingleton<EmailBackgroundService>();
+builder.Services.AddHostedService(provider => provider.GetRequiredService<EmailBackgroundService>());
+builder.Services.AddTransient<IEmailSender, EtherealEmailSender>();
+// builder.Services.AddTransient<IEmailSender, GmailEmailSender>();
 builder.Services.AddScoped<JwtService>();
 builder.Services.AddScoped<PasswordService>();
 builder.Services.AddScoped<ICustomerService, CustomerService>();

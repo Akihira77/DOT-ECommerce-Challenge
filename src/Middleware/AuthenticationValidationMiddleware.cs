@@ -5,7 +5,9 @@ namespace ECommerce.Middleware;
 
 public static class AuthenticationValidationMiddleware
 {
-    public static EndpointFilterDelegate RequireAuthentication(EndpointFilterFactoryContext factoryCtx, EndpointFilterDelegate next)
+    public static EndpointFilterDelegate RequireAuthentication(
+        EndpointFilterFactoryContext factoryCtx,
+        EndpointFilterDelegate next)
     {
         return async invocationContext =>
         {
@@ -20,7 +22,9 @@ public static class AuthenticationValidationMiddleware
         };
     }
 
-    public static EndpointFilterDelegate RequireAdmin(EndpointFilterFactoryContext factoryCtx, EndpointFilterDelegate next)
+    public static EndpointFilterDelegate RequireAdmin(
+        EndpointFilterFactoryContext factoryCtx,
+        EndpointFilterDelegate next)
     {
         return async invocationContext =>
         {
