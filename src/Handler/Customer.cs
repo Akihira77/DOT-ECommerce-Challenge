@@ -9,7 +9,7 @@ namespace ECommerce.Handler;
 
 public static class CustomerHandler
 {
-    public static async Task<Results<Ok<IEnumerable<CustomerOverviewDTO>>, BadRequest<string>>> FindCustomers(
+    public static Results<Ok<IEnumerable<CustomerOverviewDTO>>, BadRequest<string>> FindCustomers(
         HttpContext httpCtx,
         [FromServices] ICustomerService customerSvc)
     {
@@ -19,11 +19,11 @@ public static class CustomerHandler
             cts.CancelAfter(TimeSpan.FromSeconds(2));
 
             var queryable = customerSvc.FindCustomers(cts.Token, false);
-            var customers = await queryable
+            var customers = queryable
                 .ToCustomersOverviewDTO()
-                .ToListAsync();
+                .AsEnumerable();
 
-            return TypedResults.Ok(customers.AsEnumerable());
+            return TypedResults.Ok(customers);
         }
         catch (System.Exception err)
         {

@@ -25,7 +25,7 @@ public interface IOrderService
     //NOTE: CUSTOMER
     Task<Order> CreateOrder(
         CancellationToken ct,
-        int customerId,
+        CustomerOverviewDTO c,
         IEnumerable<CustomerCart> myCart);
     Task<IEnumerable<Order>> FindMyOrderHistories(
         CancellationToken ct,

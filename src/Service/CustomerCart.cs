@@ -12,7 +12,7 @@ public class CustomerCartService : ICustomerCartService
         this.ctx = ctx;
     }
 
-    public async Task<IEnumerable<CustomerCart>> AddItemToCart(
+    public async Task<bool> AddItemToCart(
         CancellationToken ct,
         int customerId,
         CustomerCartDTO item)
@@ -28,9 +28,9 @@ public class CustomerCartService : ICustomerCartService
                 Quantity = item.quantity,
             };
             this.ctx.CustomerCarts.Add(cc);
-            await this.ctx.SaveChangesAsync(ct);
+            var result = await this.ctx.SaveChangesAsync(ct) > 0;
 
-            return await this.FindItemsInMyCart(ct, customerId);
+            return result;
         }
         catch (System.Exception err)
         {
@@ -165,7 +165,7 @@ public class CustomerCartService : ICustomerCartService
         }
     }
 
-    public async Task<IEnumerable<CustomerCart>> FindItemsInMyCart(
+    public IQueryable<CustomerCart> FindItemsInMyCart(
         CancellationToken ct,
         int customerId)
     {
@@ -173,14 +173,14 @@ public class CustomerCartService : ICustomerCartService
         {
             ct.ThrowIfCancellationRequested();
 
-            var myCart = await this.ctx
+            var query = this.ctx
                 .CustomerCarts
                 .AsNoTracking()
                 .Include(cc => cc.Product)
-                .Where(cc => cc.CustomerId.Equals(customerId))
-                .ToListAsync(ct);
+                    .ThenInclude(p => p!.ProductCategory)
+                .Where(cc => cc.CustomerId.Equals(customerId));
 
-            return myCart;
+            return query;
         }
         catch (System.Exception err)
         {
@@ -189,7 +189,7 @@ public class CustomerCartService : ICustomerCartService
         }
     }
 
-    public async Task<IEnumerable<CustomerCart>> RemoveItemFromCart(
+    public async Task<bool> RemoveItemFromCart(
         CancellationToken ct,
         CustomerCart item)
     {
@@ -200,9 +200,9 @@ public class CustomerCartService : ICustomerCartService
             int customerId = item.CustomerId;
 
             this.ctx.CustomerCarts.Remove(item);
-            await this.ctx.SaveChangesAsync();
+            var result = await this.ctx.SaveChangesAsync() > 0;
 
-            return await this.FindItemsInMyCart(ct, customerId);
+            return result;
         }
         catch (System.Exception err)
         {

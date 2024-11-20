@@ -161,7 +161,7 @@ public class CustomerService : ICustomerService
 
             await this.ctx.SaveChangesAsync(ct);
 
-            await this.emailBackgroundSvc.QueueEmail(new sendEmailData(c.Email, "Email Verification", $"Verification your email {c.Email}"));
+            this.emailBackgroundSvc.QueueEmail(new sendEmailData(c.Email, "Email Verification", $"Verification your email {c.Email}"));
 
             await tx.CommitAsync(ct);
             return c;

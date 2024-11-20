@@ -53,10 +53,14 @@ public record CreateCustomerAndCustomerAddressDTO(CreateCustomerDTO custData, Up
 public record EditCustomerDTO(string name, string email, UserRoles role);
 public record EditCustomerAndCustomerAddressDTO(EditCustomerDTO custData, CustomerAddress? addrData);
 public record CustomerCartDTO(int productId, int quantity);
+public record CustomerCartOverviewDTO(int id, ProductDTO product);
+public record EditCustomerCartDTO(int quantity);
 
-[Mapper]
+[Mapper()]
 public static partial class CustomerMapper
 {
     public static partial CustomerOverviewDTO ToCustomerOverviewDTO(this Customer c);
     public static partial IQueryable<CustomerOverviewDTO> ToCustomersOverviewDTO(this IQueryable<Customer> c);
+    public static partial CustomerCartOverviewDTO ToDTO(this CustomerCart cc);
+    public static partial IQueryable<CustomerCartOverviewDTO> ToDTOS(this IQueryable<CustomerCart> cc);
 }

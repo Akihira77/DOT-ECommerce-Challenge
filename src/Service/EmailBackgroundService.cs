@@ -30,8 +30,7 @@ public class EmailBackgroundService : BackgroundService
             }
             catch (OperationCanceledException)
             {
-                await this.emailSender.Shutdown(default);
-                break;
+                Console.WriteLine($"Loop Stopped");
             }
         }
     }

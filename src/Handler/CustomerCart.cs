@@ -7,7 +7,7 @@ namespace ECommerce.Handler;
 
 public static class CustomerCartHandler
 {
-    public static async Task<Results<Ok<IEnumerable<CustomerCart>>, BadRequest<string>>> FindMyCart(
+    public static Results<Ok<IEnumerable<CustomerCartOverviewDTO>>, BadRequest<string>> FindMyCart(
         HttpContext httpCtx,
         [FromServices] ICustomerCartService customerCartSvc)
     {
@@ -17,7 +17,11 @@ public static class CustomerCartHandler
             cts.CancelAfter(TimeSpan.FromSeconds(2));
 
             var current_user = httpCtx.Items["current_user"] as CustomerOverviewDTO;
-            var myCart = await customerCartSvc.FindItemsInMyCart(cts.Token, current_user!.id);
+            var myCart = customerCartSvc
+                .FindItemsInMyCart(cts.Token,
+                                   current_user!.id)
+                .ToDTOS()
+                .AsEnumerable();
 
             return TypedResults.Ok(myCart);
         }
@@ -28,7 +32,7 @@ public static class CustomerCartHandler
         }
     }
 
-    public static async Task<Results<Ok<IEnumerable<CustomerCart>>, NotFound<string>, BadRequest<string>>> AddItemToCart(
+    public static async Task<Results<Ok<IEnumerable<CustomerCartOverviewDTO>>, NotFound<string>, BadRequest<string>>> AddItemToCart(
         HttpContext httpCtx,
         [FromServices] ICustomerCartService customerCartSvc,
         [FromServices] IProductService productService,
@@ -62,7 +66,8 @@ public static class CustomerCartHandler
                 return TypedResults.BadRequest("The Product is already in your cart.");
             }
 
-            var myCart = await customerCartSvc.AddItemToCart(cts.Token, current_user!.id, data);
+            await customerCartSvc.AddItemToCart(cts.Token, current_user!.id, data);
+            var myCart = customerCartSvc.FindItemsInMyCart(cts.Token, current_user!.id).ToDTOS().AsEnumerable();
             return TypedResults.Ok(myCart);
         }
         catch (System.Exception err)
@@ -72,7 +77,7 @@ public static class CustomerCartHandler
         }
     }
 
-    public static async Task<Results<Ok<IEnumerable<CustomerCart>>, NotFound<string>, BadRequest<string>>> RemoveItemToCart(
+    public static async Task<Results<Ok<IEnumerable<CustomerCartOverviewDTO>>, NotFound<string>, BadRequest<string>>> RemoveItemToCart(
         HttpContext httpCtx,
         [FromServices] ICustomerCartService customerCartSvc,
         [FromRoute] int cartItemId)
@@ -89,7 +94,11 @@ public static class CustomerCartHandler
                 return TypedResults.NotFound("Cart Item did not found");
             }
 
-            var myCart = await customerCartSvc.RemoveItemFromCart(cts.Token, cc);
+            var myCart = customerCartSvc
+                .FindItemsInMyCart(cts.Token,
+                                   current_user!.id)
+                .ToDTOS()
+                .AsEnumerable();
 
             return TypedResults.Ok(myCart);
         }
@@ -100,11 +109,11 @@ public static class CustomerCartHandler
         }
     }
 
-    public static async Task<Results<Ok<CustomerCart>, Ok<string>, NotFound<string>, BadRequest<string>>> EditItemQuantity(
+    public static async Task<Results<Ok<CustomerCartOverviewDTO>, Ok<string>, NotFound<string>, BadRequest<string>>> EditItemQuantity(
         HttpContext httpCtx,
         [FromServices] ICustomerCartService customerCartSvc,
         [FromRoute] int cartItemId,
-        [FromBody] int quantity,
+        [FromBody] EditCustomerCartDTO body,
         [FromQuery] string changeItemQuantity = "INCREASE_OR_DECREASE")
     {
         try
@@ -121,26 +130,26 @@ public static class CustomerCartHandler
 
             if (changeItemQuantity.Equals("CHANGE", StringComparison.Ordinal))
             {
-                cc = await customerCartSvc.EditItemQuantity(cts.Token, quantity, ChangeItemQuantity.CHANGE, cc);
+                cc = await customerCartSvc.EditItemQuantity(cts.Token, body.quantity, ChangeItemQuantity.CHANGE, cc);
 
-                return TypedResults.Ok(cc);
+                return TypedResults.Ok(cc.ToDTO());
             }
 
-            if (cc.Product!.Stock < cc.Quantity + quantity)
+            if (cc.Product!.Stock < cc.Quantity + body.quantity)
             {
                 return TypedResults.BadRequest("Your product quantity request is exceeded this product stock");
             }
 
-            if (cc.Quantity + quantity == 0)
+            if (cc.Quantity + body.quantity == 0)
             {
                 await customerCartSvc.RemoveItemFromCart(cts.Token, cc);
 
                 return TypedResults.Ok("Cart item is deleted because you requested less than 1 quantity");
             }
 
-            cc = await customerCartSvc.EditItemQuantity(cts.Token, quantity, ChangeItemQuantity.INCREASE_OR_DECREASE, cc);
+            cc = await customerCartSvc.EditItemQuantity(cts.Token, body.quantity, ChangeItemQuantity.INCREASE_OR_DECREASE, cc);
 
-            return TypedResults.Ok(cc);
+            return TypedResults.Ok(cc.ToDTO());
         }
         catch (System.Exception err)
         {

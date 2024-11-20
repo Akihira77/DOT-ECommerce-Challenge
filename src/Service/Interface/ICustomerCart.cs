@@ -4,7 +4,7 @@ namespace ECommerce.Service;
 
 public interface ICustomerCartService
 {
-    Task<IEnumerable<CustomerCart>> FindItemsInMyCart(
+    IQueryable<CustomerCart> FindItemsInMyCart(
         CancellationToken ct,
         int customerId);
     Task<CustomerCart?> FindCartItemById(
@@ -23,7 +23,7 @@ public interface ICustomerCartService
         int productId,
         bool track,
         bool includeProduct);
-    Task<IEnumerable<CustomerCart>> AddItemToCart(
+    Task<bool> AddItemToCart(
         CancellationToken ct,
         int customerId,
         CustomerCartDTO item);
@@ -32,7 +32,7 @@ public interface ICustomerCartService
         int quantity,
         ChangeItemQuantity ciq,
         CustomerCart cc);
-    Task<IEnumerable<CustomerCart>> RemoveItemFromCart(
+    Task<bool> RemoveItemFromCart(
         CancellationToken ct,
         CustomerCart item);
 }

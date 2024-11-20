@@ -64,13 +64,13 @@ public static class OrderHandler
             cts.CancelAfter(TimeSpan.FromSeconds(3));
 
             var current_user = httpCtx.Items["current_user"] as CustomerOverviewDTO;
-            var myCart = await customerCartSvc.FindItemsInMyCart(cts.Token, current_user!.id);
+            var myCart = customerCartSvc.FindItemsInMyCart(cts.Token, current_user!.id);
             if (!myCart.Any())
             {
                 return TypedResults.BadRequest("Your cart is empty");
             }
 
-            var o = await orderSvc.CreateOrder(cts.Token, current_user!.id, myCart);
+            var o = await orderSvc.CreateOrder(cts.Token, current_user, myCart);
 
             return TypedResults.Created(httpCtx.Request.Path, o);
         }

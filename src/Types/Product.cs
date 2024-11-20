@@ -20,6 +20,15 @@ public class Product
     public ICollection<CustomerCart> CustomerCarts { get; set; } = new List<CustomerCart>();
 }
 
+public class ProductDTO
+{
+    public int Id { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public decimal Price { get; set; }
+    public int Stock { get; set; }
+    public string Description { get; set; } = string.Empty;
+    public ProductCategoryDTO? ProductCategory { get; set; }
+}
 public record CreateProductDTO(
     string name,
     decimal price,
