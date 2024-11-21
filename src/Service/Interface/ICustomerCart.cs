@@ -1,6 +1,6 @@
 using ECommerce.Types;
 
-namespace ECommerce.Service;
+namespace ECommerce.Service.Interface;
 
 public interface ICustomerCartService
 {

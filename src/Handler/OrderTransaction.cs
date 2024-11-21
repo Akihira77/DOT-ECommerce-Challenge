@@ -1,4 +1,5 @@
 using ECommerce.Service;
+using ECommerce.Service.Interface;
 using ECommerce.Types;
 using ECommerce.Util;
 using Microsoft.AspNetCore.Http.HttpResults;

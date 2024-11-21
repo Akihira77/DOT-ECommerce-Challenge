@@ -1,6 +1,6 @@
 using ECommerce.Types;
 
-namespace ECommerce.Service;
+namespace ECommerce.Service.Interface;
 
 //TODO: THINK:
 //1. DO WE HAVE CANCEL ORDER FEATURE

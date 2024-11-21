@@ -1,3 +1,4 @@
+using ECommerce.Service.Interface;
 using ECommerce.Store;
 using ECommerce.Types;
 using ECommerce.Util;

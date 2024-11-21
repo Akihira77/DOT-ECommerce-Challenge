@@ -1,7 +1,7 @@
 namespace ECommerce.Middleware;
 
 using System.Security.Claims;
-using ECommerce.Service;
+using ECommerce.Service.Interface;
 using ECommerce.Types;
 using ECommerce.Util;
 

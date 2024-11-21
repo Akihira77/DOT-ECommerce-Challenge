@@ -14,11 +14,14 @@ public class EtherealEmailSender : IEmailSender
     private readonly EmailConfiguration emailConfiguration;
     private readonly SmtpClient client;
 
-    public EtherealEmailSender(IConfiguration configuration)
+    public EtherealEmailSender(
+        IConfiguration configuration,
+        EmailConfiguration emailConfiguration)
     {
-        this.emailConfiguration = new();
-        configuration.GetSection("EtherealEmailConfiguration").Bind(this.emailConfiguration);
+        // this.emailConfiguration = new();
+        // configuration.GetSection("EtherealEmailConfiguration").Bind(this.emailConfiguration);
 
+        this.emailConfiguration = emailConfiguration;
         this.client = new SmtpClient();
         client.Connect(
                 this.emailConfiguration.SmtpHost,

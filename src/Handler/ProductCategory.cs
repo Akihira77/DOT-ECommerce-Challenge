@@ -1,4 +1,4 @@
-using ECommerce.Service;
+using ECommerce.Service.Interface;
 using ECommerce.Types;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;

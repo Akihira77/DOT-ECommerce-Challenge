@@ -3,8 +3,10 @@ using System.Threading.RateLimiting;
 using ECommerce.Middleware;
 using ECommerce.Router;
 using ECommerce.Service;
+using ECommerce.Service.Interface;
 using ECommerce.Store;
 using ECommerce.Util;
+using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Http.Json;
 using Microsoft.AspNetCore.HttpLogging;
 using Microsoft.AspNetCore.RateLimiting;
@@ -54,16 +56,26 @@ builder.Services.AddRateLimiter(conf =>
         o.QueueLimit = 0;
     });
 });
+builder.Services.AddProblemDetails(o =>
+{
+    o.CustomizeProblemDetails = ctx =>
+    {
+        ctx.ProblemDetails.Instance = $"{ctx.HttpContext.Request.Method} {ctx.HttpContext.Request.Path}";
+        ctx.ProblemDetails.Extensions.TryAdd("RequestId", ctx.HttpContext.TraceIdentifier);
+
+        var activity = ctx.HttpContext.Features.Get<IHttpActivityFeature>()?.Activity;
+        ctx.ProblemDetails.Extensions.TryAdd("TraceId", activity?.Id);
+    };
+});
 
 
 builder.Services.Configure<EmailConfiguration>(
     builder.Configuration.GetSection("EtherealEmailConfiguration"));
 builder.Services.AddSingleton(resolver =>
     resolver.GetRequiredService<IOptions<EmailConfiguration>>().Value);
+builder.Services.AddSingleton<IEmailSender, EtherealEmailSender>();
 builder.Services.AddSingleton<EmailBackgroundService>();
 builder.Services.AddHostedService(provider => provider.GetRequiredService<EmailBackgroundService>());
-builder.Services.AddTransient<IEmailSender, EtherealEmailSender>();
-// builder.Services.AddTransient<IEmailSender, GmailEmailSender>();
 builder.Services.AddScoped<JwtService>();
 builder.Services.AddScoped<PasswordService>();
 builder.Services.AddScoped<ICustomerService, CustomerService>();

@@ -1,15 +1,13 @@
-using ECommerce.Service;
+using ECommerce.Service.Interface;
 using ECommerce.Types;
 using ECommerce.Util;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace ECommerce.Handler;
 
 public static class CustomerHandler
 {
-    public static Results<Ok<IEnumerable<CustomerOverviewDTO>>, BadRequest<string>> FindCustomers(
+    public static IResult FindCustomers(
         HttpContext httpCtx,
         [FromServices] ICustomerService customerSvc)
     {
@@ -23,16 +21,16 @@ public static class CustomerHandler
                 .ToCustomersOverviewDTO()
                 .AsEnumerable();
 
-            return TypedResults.Ok(customers);
+            return Results.Ok(customers);
         }
         catch (System.Exception err)
         {
             Console.WriteLine($"There are error {err}");
-            return TypedResults.BadRequest("Unexpected Error Happened.");
+            return new InternalServerError("Unexpected error happened.").ToResult();
         }
     }
 
-    public static async Task<Results<Ok<CustomerOverviewDTO>, NotFound<string>, BadRequest<string>>> FindCustomerById(
+    public static async Task<IResult> FindCustomerById(
         HttpContext httpCtx,
         [FromServices] ICustomerService customerSvc,
         [FromRoute] int id)
@@ -45,19 +43,19 @@ public static class CustomerHandler
             var c = await customerSvc.FindCustomerById(cts.Token, id, false);
             if (c is null)
             {
-                return TypedResults.NotFound("User did not found");
+                return new NotFoundError("Customer data is not found").ToResult();
             }
 
-            return TypedResults.Ok(c.ToCustomerOverviewDTO());
+            return Results.Ok(c.ToCustomerOverviewDTO());
         }
         catch (System.Exception err)
         {
             Console.WriteLine($"There are error {err}");
-            return TypedResults.BadRequest("Unexpected Error Happened.");
+            return new InternalServerError("Unexpected error happened.").ToResult();
         }
     }
 
-    public static async Task<Results<Ok<Customer>, UnauthorizedHttpResult, BadRequest<string>>> FindMyCustomerInfo(
+    public static async Task<IResult> FindMyCustomerInfo(
         HttpContext httpCtx,
         [FromServices] ICustomerService customerSvc)
     {
@@ -69,17 +67,17 @@ public static class CustomerHandler
             var current_user = httpCtx.Items["current_user"] as CustomerOverviewDTO;
             var c = await customerSvc.FindCustomerById(cts.Token, current_user!.id, false);
 
-            return TypedResults.Ok(c);
+            return Results.Ok(c);
         }
         catch (System.Exception err)
         {
             Console.WriteLine($"There are error {err}");
-            return TypedResults.BadRequest("Unexpected Error Happened.");
+            return new InternalServerError("Unexpected error happened.").ToResult();
         }
     }
 
 
-    public static async Task<Results<Ok<Customer>, NotFound<string>, BadRequest<string>>> FindCustomerByNameOrEmail(
+    public static async Task<IResult> FindCustomerByNameOrEmail(
         HttpContext httpCtx,
         [FromServices] ICustomerService customerSvc,
         [FromRoute] string str)
@@ -92,19 +90,19 @@ public static class CustomerHandler
             var c = await customerSvc.FindCustomerByNameOrEmail(cts.Token, str, false);
             if (c is null)
             {
-                return TypedResults.NotFound("User did not found");
+                return new NotFoundError("Customer data is not found").ToResult();
             }
 
-            return TypedResults.Ok(c);
+            return Results.Ok(c);
         }
         catch (System.Exception err)
         {
             Console.WriteLine($"There are error {err}");
-            return TypedResults.BadRequest("Unexpected Error Happened.");
+            return new InternalServerError("Unexpected error happened.").ToResult();
         }
     }
 
-    public static async Task<Results<Created<Customer>, BadRequest<string>>> CreateCustomer(
+    public static async Task<IResult> CreateCustomer(
         HttpContext httpCtx,
         [FromServices] ICustomerService customerSvc,
         [FromBody] CreateCustomerAndCustomerAddressDTO data)
@@ -116,16 +114,16 @@ public static class CustomerHandler
 
             var c = await customerSvc.CreateCustomer(cts.Token, data.custData, data.addrData);
 
-            return TypedResults.Created(httpCtx.Request.Path, c);
+            return Results.Created(httpCtx.Request.Path, c);
         }
         catch (System.Exception err)
         {
             Console.WriteLine($"There are error {err}");
-            return TypedResults.BadRequest("Unexpected Error Happened.");
+            return new InternalServerError("Unexpected error happened.").ToResult();
         }
     }
 
-    public static async Task<Results<Ok<CustomerOverviewDTO>, NotFound<string>, BadRequest<string>>> Login(
+    public static async Task<IResult> Login(
         HttpContext httpCtx,
         [FromServices] ICustomerService customerSvc,
         [FromServices] JwtService jwtSvc,
@@ -139,7 +137,7 @@ public static class CustomerHandler
             var c = await customerSvc.FindCustomerByNameOrEmail(cts.Token, data.email, false);
             if (c is null)
             {
-                return TypedResults.NotFound("User did not found");
+                return new NotFoundError("Customer data is not found").ToResult();
             }
 
             var token = jwtSvc.GenerateJwtToken(c.Email);
@@ -151,16 +149,16 @@ public static class CustomerHandler
                 Expires = DateTime.Now.AddDays(1)
             });
 
-            return TypedResults.Ok(c.ToCustomerOverviewDTO());
+            return Results.Ok(c.ToCustomerOverviewDTO());
         }
         catch (System.Exception err)
         {
             Console.WriteLine($"There are error {err}");
-            return TypedResults.BadRequest("Unexpected Error Happened.");
+            return new InternalServerError("Unexpected error happened.").ToResult();
         }
     }
 
-    public static async Task<Results<Ok<Customer>, NotFound<string>, BadRequest<string>>> EditCustomer(
+    public static async Task<IResult> EditCustomer(
         HttpContext httpCtx,
         [FromServices] ICustomerService customerSvc,
         [FromBody] EditCustomerAndCustomerAddressDTO data)
@@ -174,16 +172,16 @@ public static class CustomerHandler
             var c = await customerSvc.FindCustomerById(cts.Token, current_user!.id, false);
             c = await customerSvc.EditCustomer(cts.Token, data.custData, c!, data.addrData);
 
-            return TypedResults.Ok(c);
+            return Results.Ok(c);
         }
         catch (System.Exception err)
         {
             Console.WriteLine($"There are error {err}");
-            return TypedResults.BadRequest("Unexpected Error Happened.");
+            return new InternalServerError("Unexpected error happened.").ToResult();
         }
     }
 
-    public static async Task<Results<Created<string>, NotFound<string>, BadRequest<string>>> AddCustomerAddress(
+    public static async Task<IResult> AddCustomerAddress(
         HttpContext httpCtx,
         [FromServices] ICustomerService customerSvc,
         [FromBody] UpsertCustomerAddressDTO addrData)
@@ -197,19 +195,19 @@ public static class CustomerHandler
             var c = await customerSvc.AddCustomerAddress(cts.Token, current_user!.id, addrData);
             if (!c)
             {
-                return TypedResults.BadRequest("Adding New Customer Address is failed");
+                return new BadRequestError("Adding new customer address error").ToResult();
             }
 
-            return TypedResults.Created(httpCtx.Request.Path, "New Customer Address is successfully added");
+            return Results.Created(httpCtx.Request.Path, "New Customer Address is successfully added");
         }
         catch (System.Exception err)
         {
             Console.WriteLine($"There are error {err}");
-            return TypedResults.BadRequest("Unexpected Error Happened.");
+            return new InternalServerError("Unexpected error happened.").ToResult();
         }
     }
 
-    public static async Task<Results<Ok<Customer>, NotFound<string>, BadRequest<string>, StatusCodeHttpResult>> UpgradeCustomerToAdmin(
+    public static async Task<IResult> UpgradeCustomerToAdmin(
         HttpContext httpCtx,
         [FromServices] ICustomerService customerSvc,
         [FromRoute] int customerId)
@@ -222,21 +220,21 @@ public static class CustomerHandler
             var c = await customerSvc.FindCustomerById(cts.Token, customerId, true);
             if (c is null)
             {
-                return TypedResults.NotFound("User did not found");
+                return new NotFoundError("Customer data is not found").ToResult();
             }
 
             c = await customerSvc.EditCustomer(cts.Token, new EditCustomerDTO(c.Name, c.Email, UserRoles.ADMIN), c, null);
-            return TypedResults.Ok(c);
+            return Results.Ok(c);
         }
         catch (System.Exception err)
         {
             Console.WriteLine($"There are error {err}");
-            return TypedResults.BadRequest("Unexpected Error Happened.");
+            return new InternalServerError("Unexpected error happened.").ToResult();
         }
     }
 
 
-    public static async Task<Results<Ok<string>, NotFound<string>, BadRequest<string>, StatusCodeHttpResult>> DeleteCustomer(
+    public static async Task<IResult> DeleteCustomer(
         HttpContext httpCtx,
         [FromServices] ICustomerService customerSvc,
         [FromRoute] int customerId)
@@ -249,21 +247,21 @@ public static class CustomerHandler
             var c = await customerSvc.FindCustomerById(cts.Token, customerId, true);
             if (c is null)
             {
-                return TypedResults.NotFound("User did not found");
+                return new NotFoundError("Customer data is not found").ToResult();
             }
 
             var result = await customerSvc.DeleteCustomer(cts.Token, c);
-            if (result)
+            if (!result)
             {
-                return TypedResults.Ok("Delete Customer success");
+                return new BadRequestError("Failed deleting customer data").ToResult();
             }
 
-            return TypedResults.BadRequest("Delete Customer failed");
+            return Results.Ok("Success deleting");
         }
         catch (System.Exception err)
         {
             Console.WriteLine($"There are error {err}");
-            return TypedResults.BadRequest("Unexpected Error Happened.");
+            return new InternalServerError("Unexpected error happened.").ToResult();
         }
     }
 }
