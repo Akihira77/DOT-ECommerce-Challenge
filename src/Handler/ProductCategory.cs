@@ -1,13 +1,12 @@
 using ECommerce.Service.Interface;
 using ECommerce.Types;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ECommerce.Handler;
 
 public static class ProductCategoryHandler
 {
-    public static async Task<Results<Ok<IEnumerable<ProductCategory>>, BadRequest<string>>> FindProductCategories(
+    public static async Task<IResult> FindProductCategories(
         HttpContext httpCtx,
         [FromServices] IProductCategoryService productCategorySvc,
         [FromQuery] bool includeProducts = false)
@@ -19,16 +18,16 @@ public static class ProductCategoryHandler
 
             var productCategories = await productCategorySvc.FindProductCategories(cts.Token, false, includeProducts);
 
-            return TypedResults.Ok(productCategories);
+            return Results.Ok(productCategories);
         }
         catch (System.Exception err)
         {
             Console.WriteLine($"There are errors {err}");
-            return TypedResults.BadRequest("Unexpected error happened.");
+            return new InternalServerError("Unexpected error happened.").ToResult();
         }
     }
 
-    public static async Task<Results<Ok<ProductCategory>, NotFound<string>, BadRequest<string>>> FindProductCategoryById(
+    public static async Task<IResult> FindProductCategoryById(
         HttpContext httpCtx,
         [FromServices] IProductCategoryService productCategorySvc,
         [FromRoute] int id,
@@ -39,22 +38,22 @@ public static class ProductCategoryHandler
             var cts = CancellationTokenSource.CreateLinkedTokenSource(httpCtx.RequestAborted);
             cts.CancelAfter(TimeSpan.FromSeconds(2));
 
-            var productCategory = await productCategorySvc.FindProductCategoryById(cts.Token, id, false, includeProducts);
-            if (productCategory is null)
+            var pc = await productCategorySvc.FindProductCategoryById(cts.Token, id, false, includeProducts);
+            if (pc is null)
             {
-                return TypedResults.NotFound("Product Category did not found");
+                return new NotFoundError("Product Category is not found").ToResult();
             }
 
-            return TypedResults.Ok(productCategory);
+            return Results.Ok(pc);
         }
         catch (System.Exception err)
         {
             Console.WriteLine($"There are errors {err}");
-            return TypedResults.BadRequest("Unexpected error happened.");
+            return new InternalServerError("Unexpected error happened.").ToResult();
         }
     }
 
-    public static async Task<Results<Created<ProductCategory>, BadRequest<string>>> CreateProductCategory(
+    public static async Task<IResult> CreateProductCategory(
         HttpContext httpCtx,
         [FromServices] IProductCategoryService productCategorySvc,
         [FromBody] UpsertProductCategoryDTO data)
@@ -64,18 +63,18 @@ public static class ProductCategoryHandler
             var cts = CancellationTokenSource.CreateLinkedTokenSource(httpCtx.RequestAborted);
             cts.CancelAfter(TimeSpan.FromSeconds(2));
 
-            var productCategory = await productCategorySvc.CreateProductCategory(cts.Token, data);
+            var pc = await productCategorySvc.CreateProductCategory(cts.Token, data);
 
-            return TypedResults.Created(httpCtx.Request.Path, productCategory);
+            return Results.Created(httpCtx.Request.Path, pc);
         }
         catch (System.Exception err)
         {
             Console.WriteLine($"There are errors {err}");
-            return TypedResults.BadRequest("Unexpected error happened.");
+            return new InternalServerError("Unexpected error happened.").ToResult();
         }
     }
 
-    public static async Task<Results<Ok<ProductCategory>, NotFound<string>, BadRequest<string>>> EditProductCategory(
+    public static async Task<IResult> EditProductCategory(
         HttpContext httpCtx,
         [FromServices] IProductCategoryService productCategorySvc,
         [FromRoute] int categoryId,
@@ -86,24 +85,24 @@ public static class ProductCategoryHandler
             var cts = CancellationTokenSource.CreateLinkedTokenSource(httpCtx.RequestAborted);
             cts.CancelAfter(TimeSpan.FromSeconds(2));
 
-            var productCategory = await productCategorySvc.FindProductCategoryById(cts.Token, categoryId, false, false);
-            if (productCategory is null)
+            var pc = await productCategorySvc.FindProductCategoryById(cts.Token, categoryId, false, false);
+            if (pc is null)
             {
-                return TypedResults.NotFound("Product Category did not found");
+                return new NotFoundError("Product Category is not found").ToResult();
             }
 
-            productCategory = await productCategorySvc.EditProductCategory(cts.Token, data, productCategory);
+            pc = await productCategorySvc.EditProductCategory(cts.Token, data, pc);
 
-            return TypedResults.Ok(productCategory);
+            return Results.Ok(pc);
         }
         catch (System.Exception err)
         {
             Console.WriteLine($"There are errors {err}");
-            return TypedResults.BadRequest("Unexpected error happened.");
+            return new InternalServerError("Unexpected error happened.").ToResult();
         }
     }
 
-    public static async Task<Results<Ok<string>, NotFound<string>, BadRequest<string>>> DeleteProductCategory(
+    public static async Task<IResult> DeleteProductCategory(
         HttpContext httpCtx,
         [FromServices] IProductCategoryService productCategorySvc,
         [FromRoute] int categoryId)
@@ -113,24 +112,24 @@ public static class ProductCategoryHandler
             var cts = CancellationTokenSource.CreateLinkedTokenSource(httpCtx.RequestAborted);
             cts.CancelAfter(TimeSpan.FromSeconds(2));
 
-            var productCategory = await productCategorySvc.FindProductCategoryById(cts.Token, categoryId, false, false);
-            if (productCategory is null)
+            var pc = await productCategorySvc.FindProductCategoryById(cts.Token, categoryId, false, false);
+            if (pc is null)
             {
-                return TypedResults.NotFound("Product Category did not found");
+                return new NotFoundError("Product Category is not found").ToResult();
             }
 
-            var result = await productCategorySvc.DeleteProductCategory(cts.Token, productCategory);
+            var result = await productCategorySvc.DeleteProductCategory(cts.Token, pc);
             if (!result)
             {
-                return TypedResults.BadRequest("Deleting Product Category failed");
+                return new BadRequestError("Deleting Product Category failed").ToResult();
             }
 
-            return TypedResults.Ok("Deleting Product Category success");
+            return Results.Ok("Deleting Product Category success");
         }
         catch (System.Exception err)
         {
             Console.WriteLine($"There are errors {err}");
-            return TypedResults.BadRequest("Unexpected error happened.");
+            return new InternalServerError("Unexpected error happened.").ToResult();
         }
     }
 }
