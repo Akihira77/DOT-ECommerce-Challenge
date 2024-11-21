@@ -1,13 +1,12 @@
 using ECommerce.Service.Interface;
 using ECommerce.Types;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ECommerce.Handler;
 
 public static class CustomerCartHandler
 {
-    public static Results<Ok<IEnumerable<CustomerCartOverviewDTO>>, BadRequest<string>> FindMyCart(
+    public static IResult FindMyCart(
         HttpContext httpCtx,
         [FromServices] ICustomerCartService customerCartSvc)
     {
@@ -23,16 +22,16 @@ public static class CustomerCartHandler
                 .ToDTOS()
                 .AsEnumerable();
 
-            return TypedResults.Ok(myCart);
+            return Results.Ok(myCart);
         }
         catch (System.Exception err)
         {
             Console.WriteLine($"There are error {err}");
-            return TypedResults.BadRequest("Unexpected error happened.");
+            return new InternalServerError("Unexpected error happened.").ToResult();
         }
     }
 
-    public static async Task<Results<Ok<IEnumerable<CustomerCartOverviewDTO>>, NotFound<string>, BadRequest<string>>> AddItemToCart(
+    public static async Task<IResult> AddItemToCart(
         HttpContext httpCtx,
         [FromServices] ICustomerCartService customerCartSvc,
         [FromServices] IProductService productService,
@@ -46,12 +45,12 @@ public static class CustomerCartHandler
             var p = await productService.FindProductById(cts.Token, data.productId, false, false);
             if (p is null)
             {
-                return TypedResults.NotFound("Product did not found");
+                return new NotFoundError("Product is not found").ToResult();
             }
 
             if (p.Stock < data.quantity)
             {
-                return TypedResults.BadRequest("Product stock is insufficient from your product quantity request");
+                return new BadRequestError("Product stock is insufficient from your product quantity request").ToResult();
             }
 
             var current_user = httpCtx.Items["current_user"] as CustomerOverviewDTO;
@@ -63,21 +62,21 @@ public static class CustomerCartHandler
                 false);
             if (productIsExistInMyCart is not null)
             {
-                return TypedResults.BadRequest("The Product is already in your cart.");
+                return new BadRequestError("The Product is already in your cart.").ToResult();
             }
 
             await customerCartSvc.AddItemToCart(cts.Token, current_user!.id, data);
             var myCart = customerCartSvc.FindItemsInMyCart(cts.Token, current_user!.id).ToDTOS().AsEnumerable();
-            return TypedResults.Ok(myCart);
+            return Results.Ok(myCart);
         }
         catch (System.Exception err)
         {
             Console.WriteLine($"There are error {err}");
-            return TypedResults.BadRequest("Unexpected error happened.");
+            return new InternalServerError("Unexpected error happened.").ToResult();
         }
     }
 
-    public static async Task<Results<Ok<IEnumerable<CustomerCartOverviewDTO>>, NotFound<string>, BadRequest<string>>> RemoveItemToCart(
+    public static async Task<IResult> RemoveItemToCart(
         HttpContext httpCtx,
         [FromServices] ICustomerCartService customerCartSvc,
         [FromRoute] int cartItemId)
@@ -91,7 +90,7 @@ public static class CustomerCartHandler
             var cc = await customerCartSvc.FindCartItemInMyCartById(cts.Token, current_user!.id, cartItemId, false, false);
             if (cc is null)
             {
-                return TypedResults.NotFound("Cart Item did not found");
+                return new NotFoundError("Cart Item did not found").ToResult();
             }
 
             var myCart = customerCartSvc
@@ -100,16 +99,16 @@ public static class CustomerCartHandler
                 .ToDTOS()
                 .AsEnumerable();
 
-            return TypedResults.Ok(myCart);
+            return Results.Ok(myCart);
         }
         catch (System.Exception err)
         {
             Console.WriteLine($"There are error {err}");
-            return TypedResults.BadRequest("Unexpected error happened.");
+            return new InternalServerError("Unexpected error happened.").ToResult();
         }
     }
 
-    public static async Task<Results<Ok<CustomerCartOverviewDTO>, Ok<string>, NotFound<string>, BadRequest<string>>> EditItemQuantity(
+    public static async Task<IResult> EditItemQuantity(
         HttpContext httpCtx,
         [FromServices] ICustomerCartService customerCartSvc,
         [FromRoute] int cartItemId,
@@ -125,36 +124,34 @@ public static class CustomerCartHandler
             var cc = await customerCartSvc.FindCartItemInMyCartById(cts.Token, current_user!.id, cartItemId, false, true);
             if (cc is null)
             {
-                return TypedResults.NotFound("Cart Item did not found");
+                return new NotFoundError("Cart Item is not found").ToResult();
             }
 
             if (changeItemQuantity.Equals("CHANGE", StringComparison.Ordinal))
             {
                 cc = await customerCartSvc.EditItemQuantity(cts.Token, body.quantity, ChangeItemQuantity.CHANGE, cc);
 
-                return TypedResults.Ok(cc.ToDTO());
+                return Results.Ok(cc.ToDTO());
             }
 
             if (cc.Product!.Stock < cc.Quantity + body.quantity)
             {
-                return TypedResults.BadRequest("Your product quantity request is exceeded this product stock");
+                return new BadRequestError("Your product quantity request is exceeded this product stock").ToResult();
             }
 
             if (cc.Quantity + body.quantity == 0)
             {
-                await customerCartSvc.RemoveItemFromCart(cts.Token, cc);
-
-                return TypedResults.Ok("Cart item is deleted because you requested less than 1 quantity");
+                return new BadRequestError("Cart item quantity cannot less than 1. Please check again").ToResult();
             }
 
             cc = await customerCartSvc.EditItemQuantity(cts.Token, body.quantity, ChangeItemQuantity.INCREASE_OR_DECREASE, cc);
 
-            return TypedResults.Ok(cc.ToDTO());
+            return Results.Ok(cc.ToDTO());
         }
         catch (System.Exception err)
         {
             Console.WriteLine($"There are error {err}");
-            return TypedResults.BadRequest("Unexpected error happened.");
+            return new InternalServerError("Unexpected error happened.").ToResult();
         }
     }
 
