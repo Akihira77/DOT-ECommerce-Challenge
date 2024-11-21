@@ -29,7 +29,7 @@ public abstract class ApiError
 public class NotFoundError : ApiError
 {
     public NotFoundError(string detail)
-        : base(type: "Not Found Error",
+        : base(type: nameof(NotFoundError),
                title: "Resource Not Found",
                detail: detail,
                statusCode: StatusCodes.Status404NotFound)
@@ -40,7 +40,7 @@ public class NotFoundError : ApiError
 public class BadRequestError : ApiError
 {
     public BadRequestError(string detail)
-        : base(type: "Bad Request Error",
+        : base(type: nameof(BadRequestError),
                title: "Bad Request",
                detail: detail,
                statusCode: StatusCodes.Status400BadRequest)
@@ -51,7 +51,7 @@ public class BadRequestError : ApiError
 public class ForbiddenError : ApiError
 {
     public ForbiddenError(string detail)
-        : base(type: "Forbidden Error",
+        : base(type: nameof(ForbiddenError),
                title: "Forbidden",
                detail: detail,
                statusCode: StatusCodes.Status403Forbidden)
@@ -63,7 +63,7 @@ public class ForbiddenError : ApiError
 public class InternalServerError : ApiError
 {
     public InternalServerError(string detail)
-        : base(type: "Internal Server Error",
+        : base(type: nameof(InternalServerError),
                title: "Server Error",
                detail: detail,
                statusCode: StatusCodes.Status404NotFound)
