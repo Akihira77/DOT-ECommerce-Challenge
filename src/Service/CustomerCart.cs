@@ -8,9 +8,14 @@ namespace ECommerce.Service;
 public class CustomerCartService : ICustomerCartService
 {
     private readonly ApplicationDbContext ctx;
-    public CustomerCartService(ApplicationDbContext ctx)
+    private readonly ILogger<CustomerCartService> logger;
+
+    public CustomerCartService(
+        ApplicationDbContext ctx,
+        ILogger<CustomerCartService> logger)
     {
         this.ctx = ctx;
+        this.logger = logger;
     }
 
     public async Task<bool> AddItemToCart(
@@ -35,7 +40,7 @@ public class CustomerCartService : ICustomerCartService
         }
         catch (System.Exception err)
         {
-            Console.WriteLine($"There are errors {err}");
+            this.logger.LogError($"Error in {err.Source} - {err.Message}");
             throw;
         }
     }
@@ -66,7 +71,7 @@ public class CustomerCartService : ICustomerCartService
         }
         catch (System.Exception err)
         {
-            Console.WriteLine($"There are errors {err}");
+            this.logger.LogError($"Error in {err.Source} - {err.Message}");
             throw;
         }
     }
@@ -91,7 +96,7 @@ public class CustomerCartService : ICustomerCartService
         }
         catch (System.Exception err)
         {
-            Console.WriteLine($"There are errors {err}");
+            this.logger.LogError($"Error in {err.Source} - {err.Message}");
             throw;
         }
     }
@@ -126,7 +131,7 @@ public class CustomerCartService : ICustomerCartService
         }
         catch (System.Exception err)
         {
-            Console.WriteLine($"There are errors {err}");
+            this.logger.LogError($"Error in {err.Source} - {err.Message}");
             throw;
         }
     }
@@ -161,7 +166,7 @@ public class CustomerCartService : ICustomerCartService
         }
         catch (System.Exception err)
         {
-            Console.WriteLine($"There are errors {err}");
+            this.logger.LogError($"Error in {err.Source} - {err.Message}");
             throw;
         }
     }
@@ -185,7 +190,7 @@ public class CustomerCartService : ICustomerCartService
         }
         catch (System.Exception err)
         {
-            Console.WriteLine($"There are errors {err}");
+            this.logger.LogError($"Error in {err.Source} - {err.Message}");
             throw;
         }
     }
@@ -207,7 +212,7 @@ public class CustomerCartService : ICustomerCartService
         }
         catch (System.Exception err)
         {
-            Console.WriteLine($"There are errors {err}");
+            this.logger.LogError($"Error in {err.Source} - {err.Message}");
             throw;
         }
     }

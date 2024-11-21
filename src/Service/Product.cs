@@ -8,10 +8,14 @@ namespace ECommerce.Service;
 public class ProductService : IProductService
 {
     private readonly ApplicationDbContext ctx;
+    private readonly ILogger<ProductService> logger;
 
-    public ProductService(ApplicationDbContext ctx)
+    public ProductService(
+        ApplicationDbContext ctx,
+        ILogger<ProductService> logger)
     {
         this.ctx = ctx;
+        this.logger = logger;
     }
 
     public async Task<Product> CreateProduct(
@@ -45,7 +49,7 @@ public class ProductService : IProductService
         catch (System.Exception err)
         {
             await tx.RollbackAsync(ct);
-            Console.WriteLine($"There are errors {err}");
+            this.logger.LogError($"Error in {err.Source} - {err.Message}");
             throw;
         }
     }
@@ -72,7 +76,7 @@ public class ProductService : IProductService
         catch (System.Exception err)
         {
             await tx.RollbackAsync(ct);
-            Console.WriteLine($"There are errors {err}");
+            this.logger.LogError($"Error in {err.Source} - {err.Message}");
             throw;
         }
     }
@@ -98,7 +102,7 @@ public class ProductService : IProductService
         }
         catch (System.Exception err)
         {
-            Console.WriteLine($"There are errors {err}");
+            this.logger.LogError($"Error in {err.Source} - {err.Message}");
             throw;
         }
     }
@@ -129,7 +133,7 @@ public class ProductService : IProductService
         }
         catch (System.Exception err)
         {
-            Console.WriteLine($"There are errors {err}");
+            this.logger.LogError($"Error in {err.Source} - {err.Message}");
             throw;
         }
     }
@@ -163,7 +167,7 @@ public class ProductService : IProductService
         }
         catch (System.Exception err)
         {
-            Console.WriteLine($"There are errors {err}");
+            this.logger.LogError($"Error in {err.Source} - {err.Message}");
             return [];
         }
     }

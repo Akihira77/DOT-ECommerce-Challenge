@@ -8,10 +8,14 @@ namespace ECommerce.Service;
 public class ProductCategoryService : IProductCategoryService
 {
     private readonly ApplicationDbContext ctx;
+    private readonly ILogger<ProductCategoryService> logger;
 
-    public ProductCategoryService(ApplicationDbContext ctx)
+    public ProductCategoryService(
+        ApplicationDbContext ctx,
+        ILogger<ProductCategoryService> logger)
     {
         this.ctx = ctx;
+        this.logger = logger;
     }
 
     public async Task<ProductCategory> CreateProductCategory(
@@ -36,7 +40,7 @@ public class ProductCategoryService : IProductCategoryService
         }
         catch (System.Exception err)
         {
-            Console.WriteLine($"There are errors {err}");
+            this.logger.LogError($"Error in {err.Source} - {err.Message}");
             throw;
         }
     }
@@ -54,7 +58,7 @@ public class ProductCategoryService : IProductCategoryService
         }
         catch (System.Exception err)
         {
-            Console.WriteLine($"There are errors {err}");
+            this.logger.LogError($"Error in {err.Source} - {err.Message}");
             throw;
         }
     }
@@ -78,7 +82,7 @@ public class ProductCategoryService : IProductCategoryService
         }
         catch (System.Exception err)
         {
-            Console.WriteLine($"There are errors {err}");
+            this.logger.LogError($"Error in {err.Source} - {err.Message}");
             throw;
         }
     }
@@ -108,7 +112,7 @@ public class ProductCategoryService : IProductCategoryService
         }
         catch (System.Exception err)
         {
-            Console.WriteLine($"There are errors {err}");
+            this.logger.LogError($"Error in {err.Source} - {err.Message}");
             return [];
         }
     }
@@ -139,7 +143,7 @@ public class ProductCategoryService : IProductCategoryService
         }
         catch (System.Exception err)
         {
-            Console.WriteLine($"There are errors {err}");
+            this.logger.LogError($"Error in {err.Source} - {err.Message}");
             throw;
         }
     }

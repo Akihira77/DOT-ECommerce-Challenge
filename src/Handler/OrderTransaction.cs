@@ -181,7 +181,6 @@ public static class OrderHandler
         [FromRoute] int orderId,
         [FromBody] UpdateOrderDTO body)
     {
-        //TODO: SEND EMAIL TO CUSTOMER FOR THEIR UPDATED ORDER FROM ADMIN
         try
         {
             var cts = CancellationTokenSource.CreateLinkedTokenSource(httpCtx.RequestAborted);

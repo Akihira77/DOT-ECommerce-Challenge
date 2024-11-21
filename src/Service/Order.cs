@@ -10,13 +10,16 @@ public class OrderService : IOrderService
 {
     private readonly ApplicationDbContext ctx;
     private readonly EmailBackgroundService emailBackgroundService;
+    private readonly ILogger<OrderService> logger;
 
     public OrderService(
         ApplicationDbContext ctx,
-        EmailBackgroundService emailBackgroundService)
+        EmailBackgroundService emailBackgroundService,
+        ILogger<OrderService> logger)
     {
         this.ctx = ctx;
         this.emailBackgroundService = emailBackgroundService;
+        this.logger = logger;
     }
 
     public async Task<Order> CreateOrder(
@@ -84,7 +87,7 @@ public class OrderService : IOrderService
         catch (System.Exception err)
         {
             await tx.RollbackAsync(ct);
-            Console.WriteLine($"There are errors ${err}");
+            this.logger.LogError($"Error in {err.Source} - {err.Message}");
             throw;
         }
     }
@@ -114,7 +117,7 @@ public class OrderService : IOrderService
         }
         catch (System.Exception err)
         {
-            Console.WriteLine($"There are errors ${err}");
+            this.logger.LogError($"Error in {err.Source} - {err.Message}");
             throw;
         }
     }
@@ -148,7 +151,7 @@ public class OrderService : IOrderService
         }
         catch (System.Exception err)
         {
-            Console.WriteLine($"There are errors ${err}");
+            this.logger.LogError($"Error in {err.Source} - {err.Message}");
             throw;
         }
     }
@@ -177,7 +180,7 @@ public class OrderService : IOrderService
         }
         catch (System.Exception err)
         {
-            Console.WriteLine($"There are errors ${err}");
+            this.logger.LogError($"Error in {err.Source} - {err.Message}");
             throw;
         }
     }
@@ -210,7 +213,7 @@ public class OrderService : IOrderService
         }
         catch (System.Exception err)
         {
-            Console.WriteLine($"There are errors ${err}");
+            this.logger.LogError($"Error in {err.Source} - {err.Message}");
             throw;
         }
     }
@@ -244,7 +247,7 @@ public class OrderService : IOrderService
         }
         catch (System.Exception err)
         {
-            Console.WriteLine($"There are errors ${err}");
+            this.logger.LogError($"Error in {err.Source} - {err.Message}");
             throw;
         }
     }

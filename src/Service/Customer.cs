@@ -11,14 +11,18 @@ public class CustomerService : ICustomerService
     private readonly ApplicationDbContext ctx;
     private readonly PasswordService passwordSvc;
     private readonly EmailBackgroundService emailBackgroundSvc;
+    private readonly ILogger<CustomerService> logger;
+
     public CustomerService(
         ApplicationDbContext ctx,
         PasswordService passwordSvc,
-        EmailBackgroundService emailSender)
+        EmailBackgroundService emailSender,
+        ILogger<CustomerService> logger)
     {
         this.ctx = ctx;
         this.passwordSvc = passwordSvc;
         this.emailBackgroundSvc = emailSender;
+        this.logger = logger;
     }
 
     public async Task<Customer?> FindCustomerById(
@@ -43,7 +47,7 @@ public class CustomerService : ICustomerService
         }
         catch (System.Exception err)
         {
-            Console.WriteLine($"There are errors {err}");
+            this.logger.LogError($"Error in {err.Source} - {err.Message}");
             throw;
         }
     }
@@ -68,7 +72,7 @@ public class CustomerService : ICustomerService
         }
         catch (System.Exception err)
         {
-            Console.WriteLine($"There are errors {err}");
+            this.logger.LogError($"Error in {err.Source} - {err.Message}");
             return null;
         }
     }
@@ -97,7 +101,7 @@ public class CustomerService : ICustomerService
         }
         catch (System.Exception err)
         {
-            Console.WriteLine($"There are errors {err}");
+            this.logger.LogError($"Error in {err.Source} - {err.Message}");
             return null;
         }
     }
@@ -121,7 +125,7 @@ public class CustomerService : ICustomerService
         }
         catch (System.Exception err)
         {
-            Console.WriteLine($"There are errors {err}");
+            this.logger.LogError($"Error in {err.Source} - {err.Message}");
             throw;
         }
     }
@@ -170,7 +174,7 @@ public class CustomerService : ICustomerService
         catch (System.Exception err)
         {
             await tx.RollbackAsync(ct);
-            Console.WriteLine($"There are errors {err}");
+            this.logger.LogError($"Error in {err.Source} - {err.Message}");
             throw;
         }
     }
@@ -205,7 +209,7 @@ public class CustomerService : ICustomerService
         catch (System.Exception err)
         {
             await tx.RollbackAsync(ct);
-            Console.WriteLine($"There are errors {err}");
+            this.logger.LogError($"Error in {err.Source} - {err.Message}");
             throw;
         }
     }
@@ -232,7 +236,7 @@ public class CustomerService : ICustomerService
         }
         catch (System.Exception err)
         {
-            Console.WriteLine($"There are errors {err}");
+            this.logger.LogError($"Error in {err.Source} - {err.Message}");
             throw;
         }
     }
@@ -251,7 +255,7 @@ public class CustomerService : ICustomerService
         }
         catch (System.Exception err)
         {
-            Console.WriteLine($"There are errors {err}");
+            this.logger.LogError($"Error in {err.Source} - {err.Message}");
             throw;
         }
     }
