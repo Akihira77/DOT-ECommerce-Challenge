@@ -41,41 +41,6 @@ public class OrderService : IOrderService
             };
             await this.ctx.Orders.AddAsync(o, ct);
 
-            //NOTE: IDK IF IT IS THE RIGHT PLACE TO CREATE ORDER TRANSACTION
-            // var ot = new OrderTransaction
-            // {
-            //     OrderId = o.Id,
-            //     Order = o,
-            //     PaymentMethod = PaymentMethod.CREDIT_CARD,
-            //     PaymentStatus = PaymentStatus.PENDING
-            // };
-            // await this.ctx.OrderTransactions.AddAsync(ot, ct);
-
-            //NOTE: INSTEAD PERFORM EXCLUSIVE LOCK ONE BY ONE
-            //RETRIEVE ALL RELATED PRODUCTS AND PROCESS IN APPLICATION LAYER (PROGRAM)
-            // foreach (var item in myCart)
-            // {
-            //     var p = await this.ctx.Products
-            //         .FromSqlInterpolated(
-            //                 $"SELECT * FROM Products WITH (UPDLOCK, ROWLOCK) WHERE Id = {item.ProductId}"
-            //                 )
-            //         .SingleAsync(ct);
-            //
-            //     if (p.Stock < item.Quantity)
-            //     {
-            //         throw new Exception($"Insufficient Product Stock");
-            //     }
-            //
-            //     p.Stock -= item.Quantity;
-            //
-            //     o.OrderItems.Add(new OrderItem
-            //             {
-            //             OrderId = o.Id,
-            //             ProductId = item.ProductId,
-            //             Quantity = item.Quantity,
-            //             });
-            // }
-
             var productIds = myCart
                 .Select(cc => cc.ProductId)
                 .ToList();

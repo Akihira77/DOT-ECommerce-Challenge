@@ -1,15 +1,13 @@
-using ECommerce.Service;
 using ECommerce.Service.Interface;
 using ECommerce.Types;
 using ECommerce.Util;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ECommerce.Handler;
 
 public static class OrderHandler
 {
-    public static async Task<Results<Ok<OrderTransaction>, NotFound<string>, BadRequest<string>>> OrderPaymentHook(
+    public static async Task<IResult> OrderPaymentHook(
         HttpContext httpCtx,
         [FromServices] IOrderService orderSvc,
         [FromServices] IOrderTransactionService orderTransactionSvc,
@@ -26,12 +24,12 @@ public static class OrderHandler
             var o = await orderSvc.FindMyOrderById(cts.Token, orderId, current_user!.id, false);
             if (o is null)
             {
-                return TypedResults.NotFound("Order did not found");
+                return new NotFoundError("Order is not found").ToResult();
             }
 
             if (!o.OrderStatus.Equals(OrderStatus.WAITING_PAYMENT))
             {
-                return TypedResults.BadRequest("Your order is not in WAITING PAYMENT status. Please check again");
+                return new BadRequestError("Your order is not in WAITING PAYMENT status. Please check again").ToResult();
             }
 
             //WARN: NOT HANDLING ANY PAYMENT STATUS CURRENTLY
@@ -39,12 +37,12 @@ public static class OrderHandler
             var pm = body.paymentMethod.ToEnumOrThrow<PaymentMethod>();
             var ot = await orderTransactionSvc.PayingOrder(cts.Token, pm, o);
 
-            return TypedResults.Ok(ot);
+            return Results.Ok(ot);
         }
         catch (System.Exception err)
         {
             Console.WriteLine($"There are errors ${err}");
-            throw;
+            return new InternalServerError("Unexpected error happened.").ToResult();
         }
     }
 
@@ -52,12 +50,11 @@ public static class OrderHandler
     //AND SERVER WILL GENERATE CLIENT_SECRET FROM PAYMENT INTENT CREATION
     //CLIENT-SIDE CAN USE CLIENT_SECRET TO DIRECT TO STRIPE PAYMENT PAGE
     //SERVER WILL SET A WEBHOOK TO RECEIVE PAYMENT RESULT
-    public static async Task<Results<Created<Order>, BadRequest<string>>> CreatePaymentIntent(
+    public static async Task<IResult> CreatePaymentIntent(
         HttpContext httpCtx,
         [FromServices] IOrderService orderSvc,
         [FromServices] ICustomerCartService customerCartSvc)
     {
-        //TODO: SEND ORDER RECEIPT EMAIL TO CUSTOMER
         //TODO: PUSH TO ADMIN THERE IS CUSTOMER MAKE AN ORDER
         try
         {
@@ -68,21 +65,21 @@ public static class OrderHandler
             var myCart = customerCartSvc.FindItemsInMyCart(cts.Token, current_user!.id);
             if (!myCart.Any())
             {
-                return TypedResults.BadRequest("Your cart is empty");
+                return new NotFoundError("Your cart is empty").ToResult();
             }
 
             var o = await orderSvc.CreateOrder(cts.Token, current_user, myCart);
 
-            return TypedResults.Created(httpCtx.Request.Path, o);
+            return Results.Created(httpCtx.Request.Path, o);
         }
         catch (System.Exception err)
         {
             Console.WriteLine($"There are errors {err}");
-            return TypedResults.BadRequest("Unexpected error happened.");
+            return new InternalServerError("Unexpected error happened.").ToResult();
         }
     }
 
-    public static async Task<Results<Ok<IEnumerable<Order>>, BadRequest<string>>> FindOrders(
+    public static async Task<IResult> FindOrders(
         HttpContext httpCtx,
         [FromServices] IOrderService orderSvc,
         [FromQuery] string orderStatus = "ALL")
@@ -95,16 +92,16 @@ public static class OrderHandler
             var os = orderStatus.ToEnumOrDefault<OrderStatus>();
             var orders = await orderSvc.FindOrders(cts.Token, os, false);
 
-            return TypedResults.Ok(orders);
+            return Results.Ok(orders);
         }
         catch (System.Exception err)
         {
             Console.WriteLine($"There are errors {err}");
-            return TypedResults.BadRequest("Unexpected error happened.");
+            return new InternalServerError("Unexpected error happened.").ToResult();
         }
     }
 
-    public static async Task<Results<Ok<Order>, NotFound<string>, BadRequest<string>>> FindOrderById(
+    public static async Task<IResult> FindOrderById(
         HttpContext httpCtx,
         [FromServices] IOrderService orderSvc,
         [FromRoute] int id)
@@ -117,19 +114,19 @@ public static class OrderHandler
             var o = await orderSvc.FindOrderById(cts.Token, id, false);
             if (o is null)
             {
-                return TypedResults.NotFound($"Order {id} did not found");
+                return new NotFoundError($"Order {id} did not found").ToResult();
             }
 
-            return TypedResults.Ok(o);
+            return Results.Ok(o);
         }
         catch (System.Exception err)
         {
             Console.WriteLine($"There are errors {err}");
-            return TypedResults.BadRequest("Unexpected error happened.");
+            return new InternalServerError("Unexpected error happened.").ToResult();
         }
     }
 
-    public static async Task<Results<Ok<IEnumerable<Order>>, BadRequest<string>>> FindMyOrderHistories(
+    public static async Task<IResult> FindMyOrderHistories(
         HttpContext httpCtx,
         [FromServices] IOrderService orderSvc,
         [FromQuery] string orderStatus = "ALL")
@@ -143,16 +140,16 @@ public static class OrderHandler
             var current_user = httpCtx.Items["current_user"] as CustomerOverviewDTO;
             var orders = await orderSvc.FindMyOrderHistories(cts.Token, current_user!.id, os, false);
 
-            return TypedResults.Ok(orders);
+            return Results.Ok(orders);
         }
         catch (System.Exception err)
         {
             Console.WriteLine($"There are errors {err}");
-            return TypedResults.BadRequest("Unexpected error happened.");
+            return new InternalServerError("Unexpected error happened.").ToResult();
         }
     }
 
-    public static async Task<Results<Ok<Order>, NotFound<string>, BadRequest<string>>> FindMyOrderById(
+    public static async Task<IResult> FindMyOrderById(
         HttpContext httpCtx,
         [FromServices] IOrderService orderSvc,
         [FromRoute] int id)
@@ -166,19 +163,19 @@ public static class OrderHandler
             var o = await orderSvc.FindMyOrderById(cts.Token, id, current_user!.id, false);
             if (o is null)
             {
-                return TypedResults.NotFound($"Order {id} did not found");
+                return new NotFoundError($"Order {id} did not found").ToResult();
             }
 
-            return TypedResults.Ok(o);
+            return Results.Ok(o);
         }
         catch (System.Exception err)
         {
             Console.WriteLine($"There are errors {err}");
-            return TypedResults.BadRequest("Unexpected error happened.");
+            return new InternalServerError("Unexpected error happened.").ToResult();
         }
     }
 
-    public static async Task<Results<Ok<Order>, NotFound<string>, BadRequest<string>>> UpdateOrderStatus(
+    public static async Task<IResult> UpdateOrderStatus(
         HttpContext httpCtx,
         [FromServices] IOrderService orderSvc,
         [FromRoute] int orderId,
@@ -193,16 +190,16 @@ public static class OrderHandler
             var o = await orderSvc.FindOrderById(cts.Token, orderId, false);
             if (o is null)
             {
-                return TypedResults.NotFound($"Order {orderId} did not found");
+                return new NotFoundError($"Order {orderId} did not found").ToResult();
             }
 
             var updatedOrder = await orderSvc.UpdateOrderStatus(cts.Token, o, body);
-            return TypedResults.Ok(updatedOrder);
+            return Results.Ok(updatedOrder);
         }
         catch (System.Exception err)
         {
             Console.WriteLine($"There are errors {err}");
-            return TypedResults.BadRequest("Unexpected error happened.");
+            return new InternalServerError("Unexpected error happened.").ToResult();
         }
     }
 }
