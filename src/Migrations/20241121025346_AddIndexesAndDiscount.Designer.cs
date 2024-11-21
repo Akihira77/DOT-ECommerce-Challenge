@@ -4,6 +4,7 @@ using ECommerce.Store;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ecommerce.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20241121025346_AddIndexesAndDiscount")]
+    partial class AddIndexesAndDiscount
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -239,7 +242,7 @@ namespace ecommerce.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<decimal>("DiscountPercentage")
-                        .HasColumnType("decimal(5,2)");
+                        .HasColumnType("decimal(3,2)");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -260,10 +263,7 @@ namespace ecommerce.Migrations
 
                     b.HasIndex("ProductCategoryId");
 
-                    b.ToTable("Products", t =>
-                        {
-                            t.HasCheckConstraint("CK_DiscountPercentage_Range", "[DiscountPercentage] BETWEEN 0 AND 100");
-                        });
+                    b.ToTable("Products");
                 });
 
             modelBuilder.Entity("ECommerce.Types.ProductCategory", b =>
@@ -279,7 +279,7 @@ namespace ecommerce.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<decimal>("DiscountPercentage")
-                        .HasColumnType("decimal(5,2)");
+                        .HasColumnType("decimal(3,2)");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -292,11 +292,7 @@ namespace ecommerce.Migrations
 
                     b.HasIndex("Name");
 
-                    b.ToTable("ProductCategories", t =>
-                        {
-                            t.HasCheckConstraint("CK_DiscountPercentage_Range", "[DiscountPercentage] BETWEEN 0 AND 100")
-                                .HasName("CK_DiscountPercentage_Range1");
-                        });
+                    b.ToTable("ProductCategories");
                 });
 
             modelBuilder.Entity("ECommerce.Types.CustomerAddress", b =>

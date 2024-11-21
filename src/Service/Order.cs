@@ -32,6 +32,19 @@ public class OrderService : IOrderService
         {
             ct.ThrowIfCancellationRequested();
 
+            var calculateAmount = decimal (decimal productPrice, int quantity, decimal productCategoryDiscount, decimal productDiscount) =>
+            {
+                productCategoryDiscount = (productCategoryDiscount > 0.00m && productCategoryDiscount <= 100.00m)
+                    ? (100.00m - productCategoryDiscount) / 100
+                    : 1;
+
+                productDiscount = (productDiscount > 0.00m && productDiscount <= 100.00m)
+                    ? (100.00m - productDiscount) / 100
+                    : 1;
+
+                return Math.Round(productPrice * quantity * productCategoryDiscount * productDiscount, 2);
+            };
+
             var now = DateTime.Now;
             var o = new Order
             {
@@ -39,7 +52,7 @@ public class OrderService : IOrderService
                 OrderStatus = OrderStatus.WAITING_PAYMENT,
                 CreatedAt = now,
                 Deadline = now.AddDays(1),
-                Amount = myCart.Sum(cc => cc.Product!.Price * cc.Quantity),
+                Amount = myCart.Sum(cc => calculateAmount(cc.Product!.Price, cc.Quantity, cc.Product!.ProductCategory!.DiscountPercentage, cc.Product!.DiscountPercentage)),
                 Version = 1,
             };
             await this.ctx.Orders.AddAsync(o, ct);

@@ -12,6 +12,8 @@ public class Product
     public decimal Price { get; set; }
     public int Stock { get; set; }
     public string Description { get; set; } = string.Empty;
+    [Column(TypeName = "decimal(5,2)")]
+    public decimal DiscountPercentage { get; set; }
     public DateTime CreatedAt { get; set; }
 
     public int? ProductCategoryId { get; set; }
@@ -27,6 +29,7 @@ public class ProductDTO
     public decimal Price { get; set; }
     public int Stock { get; set; }
     public string Description { get; set; } = string.Empty;
+    public decimal DiscountPercentage { get; set; }
     public ProductCategoryDTO? ProductCategory { get; set; }
 }
 public record CreateProductDTO(
@@ -34,12 +37,14 @@ public record CreateProductDTO(
     decimal price,
     int stock,
     string description,
-    int productCategoryId);
+    int productCategoryId,
+    decimal discountPercentage);
 public record EditProductDTO(
     string name,
     decimal price,
     int stock,
-    string description);
+    string description,
+    decimal discountPercentage);
 public record FindProductsQueryDTO(
     string name,
     decimal minPrice,

@@ -35,6 +35,7 @@ public class ProductService : IProductService
                 Price = data.price,
                 Stock = data.stock,
                 ProductCategoryId = data.productCategoryId,
+                DiscountPercentage = data.discountPercentage,
                 CreatedAt = DateTime.Now
             };
             this.ctx.Products.Add(p);
@@ -94,6 +95,7 @@ public class ProductService : IProductService
             p.Description = data.description;
             p.Stock = data.stock;
             p.Price = data.price;
+            p.DiscountPercentage = data.discountPercentage;
 
             this.ctx.Products.Update(p);
             await this.ctx.SaveChangesAsync(ct);

@@ -23,6 +23,12 @@ public class ApplicationDbContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.Entity<Customer>().
+            HasIndex(p => p.Email).
+            IsUnique();
+        modelBuilder.Entity<Customer>().
+            HasIndex(p => p.Name);
+
         modelBuilder.Entity<CustomerAddress>().
             HasOne<Customer>(ca => ca.Customer).
             WithMany(c => c.CustomerAddresses).
@@ -46,6 +52,15 @@ public class ApplicationDbContext : DbContext
             WithMany(c => c.CustomerCarts).
             HasForeignKey(cc => cc.CustomerId).
             OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<Product>().
+            HasIndex(p => p.Name);
+        modelBuilder.Entity<Product>()
+            .ToTable(p => p.HasCheckConstraint("CK_DiscountPercentage_Range", "[DiscountPercentage] BETWEEN 0 AND 100"));
+        modelBuilder.Entity<ProductCategory>().
+            HasIndex(p => p.Name);
+        modelBuilder.Entity<ProductCategory>()
+            .ToTable(p => p.HasCheckConstraint("CK_DiscountPercentage_Range", "[DiscountPercentage] BETWEEN 0 AND 100"));
 
         //TODO: THINK AGAIN!
         modelBuilder.Entity<Product>().

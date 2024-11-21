@@ -66,7 +66,7 @@ public class InternalServerError : ApiError
         : base(type: nameof(InternalServerError),
                title: "Server Error",
                detail: detail,
-               statusCode: StatusCodes.Status404NotFound)
+               statusCode: StatusCodes.Status500InternalServerError)
     {
     }
 }
