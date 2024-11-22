@@ -83,7 +83,6 @@ builder.Services.AddProblemDetails(o =>
     };
 });
 
-
 builder.Services.Configure<EmailConfiguration>(
     builder.Configuration.GetSection("EtherealEmailConfiguration"));
 builder.Services.AddSingleton(resolver =>
@@ -100,6 +99,8 @@ builder.Services.AddScoped<ICustomerCartService, CustomerCartService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
 
 var app = builder.Build();
+
+app.UseHttpsRedirection();
 
 app.UseSerilogRequestLogging();
 

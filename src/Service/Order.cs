@@ -2,6 +2,9 @@ using ECommerce.Service.Interface;
 using ECommerce.Store;
 using ECommerce.Types;
 using ECommerce.Util;
+using iText.Kernel.Pdf;
+using iText.Layout;
+using iText.Layout.Element;
 using Microsoft.EntityFrameworkCore;
 
 namespace ECommerce.Service;
@@ -257,6 +260,71 @@ public class OrderService : IOrderService
 
             this.emailBackgroundService.QueueEmail(new sendEmailData(o.Customer!.Email, "Order Status Change", $"Your has change the status. Please check http://localhost:8000/orders"));
             return updatedOrder;
+        }
+        catch (System.Exception err)
+        {
+            this.logger.LogError($"Error in {err.Source} - {err.Message}");
+            throw;
+        }
+    }
+
+    public async Task GenerateReport(
+        CancellationToken ct,
+        CustomerOverviewDTO c,
+        DateTime startDate,
+        DateTime endDate)
+    {
+        try
+        {
+            ct.ThrowIfCancellationRequested();
+
+            string subject = $"Transactions Report Periode [{startDate.ToShortDateString()}-{endDate.ToShortDateString()}]";
+            string body = "Transactions Report";
+            var orderTransactions = await this.ctx
+                .OrderTransactions
+                .Include(ot => ot.Order)
+                .Where(ot => ot.Order!.CreatedAt >= startDate
+                        && ot.Order!.CreatedAt < endDate)
+                .AsNoTracking()
+                .ToListAsync();
+
+            var outputPath = Path
+                .Combine("Reports", $"Report_[{startDate.ToShortDateString()}-{endDate.ToShortDateString()}].pdf");
+
+            // Ensure the Reports directory exists
+            Directory.CreateDirectory("Reports");
+
+            using var writer = new PdfWriter(outputPath);
+            using var pdf = new PdfDocument(writer);
+            var document = new Document(pdf);
+
+            document.Add(new Paragraph("Order Transactions Report").SetFontSize(18));
+            document.Add(new Paragraph($"Generated On: {DateTime.UtcNow}").SetFontSize(12));
+
+            var table = new Table(6);
+            table.AddHeaderCell("Transaction ID");
+            table.AddHeaderCell("Customer ID");
+            table.AddHeaderCell("Amount");
+            table.AddHeaderCell("Transaction Date");
+            table.AddHeaderCell("Payment Method");
+            table.AddHeaderCell("Payment Status");
+
+            foreach (var transaction in orderTransactions)
+            {
+                table.AddCell(transaction.Id.ToString());
+                table.AddCell(transaction.Order!.CustomerId.ToString());
+                table.AddCell(transaction.Order!.Amount.ToString("C")); // Currency format
+                table.AddCell(transaction.Order!.CreatedAt.ToString("yyyy-MM-dd HH:mm:ss"));
+                table.AddCell(transaction.PaymentMethod.ToString());
+                table.AddCell(transaction.PaymentStatus.ToString());
+            }
+
+            document.Add(table);
+            document.Close();
+
+            this.emailBackgroundService.QueueEmail(new sendEmailData(c.email, subject, body, outputPath));
+
+            return;
         }
         catch (System.Exception err)
         {

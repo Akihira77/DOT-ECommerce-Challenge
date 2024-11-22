@@ -5,7 +5,9 @@ namespace ECommerce.Util;
 
 public interface IEmailSender
 {
-    Task SendEmail(CancellationToken ct, sendEmailData data);
+    Task SendEmail(
+        CancellationToken ct,
+        sendEmailData data);
     Task Shutdown(CancellationToken ct);
 }
 
@@ -33,7 +35,9 @@ public class EtherealEmailSender : IEmailSender
                 this.emailConfiguration.SenderPassword);
     }
 
-    public async Task SendEmail(CancellationToken ct, sendEmailData data)
+    public async Task SendEmail(
+        CancellationToken ct,
+        sendEmailData data)
     {
         try
         {
@@ -47,11 +51,17 @@ public class EtherealEmailSender : IEmailSender
                 data.toEmail));
             message.Subject = $@"{data.subject}";
 
-            message.Body = new TextPart(MimeKit.Text.TextFormat.Plain)
+            var bodyBuilder = new BodyBuilder
             {
-                Text = data.body,
+                TextBody = data.body
             };
 
+            if (!string.IsNullOrEmpty(data.attachmentPath) && File.Exists(data.attachmentPath))
+            {
+                bodyBuilder.Attachments.Add(data.attachmentPath);
+            }
+
+            message.Body = bodyBuilder.ToMessageBody();
 
             await this.client.SendAsync(message, ct);
             // await client.DisconnectAsync(false, ct);
@@ -94,7 +104,9 @@ public class GmailEmailSender : IEmailSender
 
     }
 
-    public async Task SendEmail(CancellationToken ct, sendEmailData data)
+    public async Task SendEmail(
+        CancellationToken ct,
+        sendEmailData data)
     {
         try
         {
@@ -103,13 +115,22 @@ public class GmailEmailSender : IEmailSender
             message.From.Add(new MailboxAddress(
                 cfg.SenderEmail,
                 cfg.SenderEmail));
-            message.To.Add(new MailboxAddress(data.toEmail, data.toEmail));
+            message.To.Add(new MailboxAddress(
+                data.toEmail,
+                data.toEmail));
             message.Subject = $@"{data.subject}";
 
-            message.Body = new TextPart(MimeKit.Text.TextFormat.Plain)
+            var bodyBuilder = new BodyBuilder
             {
-                Text = data.body,
+                TextBody = data.body
             };
+
+            if (!string.IsNullOrEmpty(data.attachmentPath) && File.Exists(data.attachmentPath))
+            {
+                bodyBuilder.Attachments.Add(data.attachmentPath);
+            }
+
+            message.Body = bodyBuilder.ToMessageBody();
 
             await this.client.SendAsync(message, ct);
 

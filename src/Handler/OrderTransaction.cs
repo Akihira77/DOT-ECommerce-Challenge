@@ -201,4 +201,32 @@ public static class OrderHandler
             return new InternalServerError("Unexpected error happened.").ToResult();
         }
     }
+
+    public static async Task<IResult> GenerateReport(
+        HttpContext httpCtx,
+        [FromServices] IOrderService orderSvc,
+        [FromQuery] DateTime endDate,
+        [FromQuery] DateTime? startDate = null)
+    {
+        try
+        {
+            if (startDate > endDate)
+            {
+                return new BadRequestError("Start Date is greater than End Date").ToResult();
+            }
+
+            var cts = CancellationTokenSource.CreateLinkedTokenSource(httpCtx.RequestAborted);
+            cts.CancelAfter(TimeSpan.FromSeconds(3));
+
+            var current_user = httpCtx.Items["current_user"] as CustomerOverviewDTO;
+            await orderSvc.GenerateReport(cts.Token, current_user!, startDate ?? DateTime.Now, endDate);
+
+            return Results.NoContent();
+        }
+        catch (System.Exception err)
+        {
+            Console.WriteLine($"There are errors {err}");
+            return new InternalServerError("Unexpected error happened.").ToResult();
+        }
+    }
 }

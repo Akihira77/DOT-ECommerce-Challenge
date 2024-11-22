@@ -21,6 +21,11 @@ public interface IOrderService
         CancellationToken ct,
         Order o,
         UpdateOrderDTO data);
+    Task GenerateReport(
+        CancellationToken ct,
+        CustomerOverviewDTO c,
+        DateTime startDate,
+        DateTime endDate);
 
     //NOTE: CUSTOMER
     Task<Order> CreateOrder(

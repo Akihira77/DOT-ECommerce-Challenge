@@ -6,4 +6,8 @@ public class EmailConfiguration
     public int SmtpPort { get; set; }
 }
 
-public record sendEmailData(string toEmail, string subject, string body);
+public record sendEmailData(
+    string toEmail,
+    string subject,
+    string body,
+    string? attachmentPath = null);
