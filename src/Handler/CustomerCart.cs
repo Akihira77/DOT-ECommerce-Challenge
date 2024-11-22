@@ -112,8 +112,7 @@ public static class CustomerCartHandler
         HttpContext httpCtx,
         [FromServices] ICustomerCartService customerCartSvc,
         [FromRoute] int cartItemId,
-        [FromBody] EditCustomerCartDTO body,
-        [FromQuery] string changeItemQuantity = "INCREASE_OR_DECREASE")
+        [FromBody] EditCustomerCartDTO body)
     {
         try
         {
@@ -127,24 +126,19 @@ public static class CustomerCartHandler
                 return new NotFoundError("Cart Item is not found").ToResult();
             }
 
-            if (changeItemQuantity.Equals("CHANGE", StringComparison.Ordinal))
+            if (body.quantity <= 0 || body.quantity > Int32.MaxValue)
             {
-                cc = await customerCartSvc.EditItemQuantity(cts.Token, body.quantity, ChangeItemQuantity.CHANGE, cc);
-
-                return Results.Ok(cc.ToDTO());
+                return new BadRequestError("Product quantity is invalid. Please input the correct number").ToResult();
             }
+
+            cc = await customerCartSvc.EditItemQuantity(cts.Token, body.quantity, cc);
 
             if (cc.Product!.Stock < cc.Quantity + body.quantity)
             {
                 return new BadRequestError("Your product quantity request is exceeded this product stock").ToResult();
             }
 
-            if (cc.Quantity + body.quantity == 0)
-            {
-                return new BadRequestError("Cart item quantity cannot less than 1. Please check again").ToResult();
-            }
-
-            cc = await customerCartSvc.EditItemQuantity(cts.Token, body.quantity, ChangeItemQuantity.INCREASE_OR_DECREASE, cc);
+            cc = await customerCartSvc.EditItemQuantity(cts.Token, body.quantity, cc);
 
             return Results.Ok(cc.ToDTO());
         }

@@ -48,21 +48,13 @@ public class CustomerCartService : ICustomerCartService
     public async Task<CustomerCart> EditItemQuantity(
         CancellationToken ct,
         int quantity,
-        ChangeItemQuantity ciq,
         CustomerCart cc)
     {
         try
         {
             ct.ThrowIfCancellationRequested();
 
-            if (ciq.Equals(ChangeItemQuantity.INCREASE_OR_DECREASE))
-            {
-                cc.Quantity += quantity;
-            }
-            else
-            {
-                cc.Quantity = quantity;
-            }
+            cc.Quantity = quantity;
 
             this.ctx.CustomerCarts.Update(cc);
             await this.ctx.SaveChangesAsync(ct);

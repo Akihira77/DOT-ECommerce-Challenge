@@ -30,7 +30,6 @@ public interface ICustomerCartService
     Task<CustomerCart> EditItemQuantity(
         CancellationToken ct,
         int quantity,
-        ChangeItemQuantity ciq,
         CustomerCart cc);
     Task<bool> RemoveItemFromCart(
         CancellationToken ct,

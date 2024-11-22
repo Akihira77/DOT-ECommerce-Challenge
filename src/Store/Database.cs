@@ -54,11 +54,13 @@ public class ApplicationDbContext : DbContext
             OnDelete(DeleteBehavior.Cascade);
 
         modelBuilder.Entity<Product>().
-            HasIndex(p => p.Name);
+            HasIndex(p => p.Name).
+            IsUnique();
         modelBuilder.Entity<Product>()
             .ToTable(p => p.HasCheckConstraint("CK_DiscountPercentage_Range", "[DiscountPercentage] BETWEEN 0 AND 100"));
         modelBuilder.Entity<ProductCategory>().
-            HasIndex(p => p.Name);
+            HasIndex(p => p.Name).
+            IsUnique();
         modelBuilder.Entity<ProductCategory>()
             .ToTable(p => p.HasCheckConstraint("CK_DiscountPercentage_Range", "[DiscountPercentage] BETWEEN 0 AND 100"));
 
