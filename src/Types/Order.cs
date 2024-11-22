@@ -25,9 +25,10 @@ public class Order
 public enum OrderStatus
 {
     WAITING_PAYMENT = 0,
-    PROCESS = 1,
-    SHIP = 2,
-    COMPLETE = 3
+    EXPIRED = 1,
+    PROCESS = 2,
+    SHIP = 3,
+    COMPLETE = 4
 }
 
 public class OrderItem

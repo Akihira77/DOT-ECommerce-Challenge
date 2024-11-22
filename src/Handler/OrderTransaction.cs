@@ -32,6 +32,11 @@ public static class OrderHandler
                 return new BadRequestError("Your order is not in WAITING PAYMENT status. Please check again").ToResult();
             }
 
+            if (DateTime.Now.CompareTo(o.Deadline) > 0)
+            {
+                return new BadRequestError("Your payment deadline is expired. Try make an order again").ToResult();
+            }
+
             //WARN: NOT HANDLING ANY PAYMENT STATUS CURRENTLY
             //JUST HANDLE THE PAYMENT_SUCCESS
             var pm = body.paymentMethod.ToEnumOrThrow<PaymentMethod>();
@@ -210,7 +215,7 @@ public static class OrderHandler
     {
         try
         {
-            if (startDate > endDate)
+            if (startDate is not null && startDate.Value.CompareTo(endDate) > 0)
             {
                 return new BadRequestError("Start Date is greater than End Date").ToResult();
             }

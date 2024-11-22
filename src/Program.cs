@@ -90,6 +90,10 @@ builder.Services.AddSingleton(resolver =>
 builder.Services.AddSingleton<IEmailSender, EtherealEmailSender>();
 builder.Services.AddSingleton<EmailBackgroundService>();
 builder.Services.AddHostedService(provider => provider.GetRequiredService<EmailBackgroundService>());
+
+builder.Services.AddSingleton<RestockProductBackgroundService>();
+builder.Services.AddHostedService(provider => provider.GetRequiredService<RestockProductBackgroundService>());
+
 builder.Services.AddScoped<JwtService>();
 builder.Services.AddScoped<PasswordService>();
 builder.Services.AddScoped<ICustomerService, CustomerService>();
@@ -97,6 +101,7 @@ builder.Services.AddScoped<IProductCategoryService, ProductCategoryService>();
 builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<ICustomerCartService, CustomerCartService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
+builder.Services.AddScoped<IOrderTransactionService, OrderTransactionService>();
 
 var app = builder.Build();
 
