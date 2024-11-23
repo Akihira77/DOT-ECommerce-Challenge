@@ -1,5 +1,6 @@
 using ECommerce.Service.Interface;
 using ECommerce.Types;
+using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ECommerce.Handler;
@@ -33,22 +34,29 @@ public static class CustomerCartHandler
 
     public static async Task<IResult> AddItemToCart(
         HttpContext httpCtx,
+        IValidator<CustomerCartDTO> validator,
         [FromServices] ICustomerCartService customerCartSvc,
         [FromServices] IProductService productService,
-        [FromBody] CustomerCartDTO data)
+        [FromBody] CustomerCartDTO body)
     {
         try
         {
             var cts = CancellationTokenSource.CreateLinkedTokenSource(httpCtx.RequestAborted);
             cts.CancelAfter(TimeSpan.FromSeconds(2));
 
-            var p = await productService.FindProductById(cts.Token, data.productId, false, false);
+            var validationResult = await validator.ValidateAsync(body, cts.Token);
+            if (!validationResult.IsValid)
+            {
+                return Results.ValidationProblem(validationResult.ToDictionary());
+            }
+
+            var p = await productService.FindProductById(cts.Token, body.productId, false, false);
             if (p is null)
             {
                 return new NotFoundError("Product is not found").ToResult();
             }
 
-            if (p.Stock < data.quantity)
+            if (p.Stock < body.quantity)
             {
                 return new BadRequestError("Product stock is insufficient from your product quantity request").ToResult();
             }
@@ -57,7 +65,7 @@ public static class CustomerCartHandler
             var productIsExistInMyCart = await customerCartSvc.FindCartItemInMyCartByProductId(
                 cts.Token,
                 current_user!.id,
-                data.productId,
+                body.productId,
                 false,
                 false);
             if (productIsExistInMyCart is not null)
@@ -65,7 +73,7 @@ public static class CustomerCartHandler
                 return new BadRequestError("The Product is already in your cart.").ToResult();
             }
 
-            await customerCartSvc.AddItemToCart(cts.Token, current_user!.id, data);
+            await customerCartSvc.AddItemToCart(cts.Token, current_user!.id, body);
             var myCart = customerCartSvc.FindItemsInMyCart(cts.Token, current_user!.id).ToDTOS().AsEnumerable();
             return Results.Ok(myCart);
         }
@@ -110,6 +118,7 @@ public static class CustomerCartHandler
 
     public static async Task<IResult> EditItemQuantity(
         HttpContext httpCtx,
+        IValidator<EditCustomerCartDTO> validator,
         [FromServices] ICustomerCartService customerCartSvc,
         [FromRoute] int cartItemId,
         [FromBody] EditCustomerCartDTO body)
@@ -118,6 +127,13 @@ public static class CustomerCartHandler
         {
             var cts = CancellationTokenSource.CreateLinkedTokenSource(httpCtx.RequestAborted);
             cts.CancelAfter(TimeSpan.FromSeconds(2));
+
+            var validationResult = await validator.ValidateAsync(body, cts.Token);
+            if (!validationResult.IsValid)
+            {
+                return Results.ValidationProblem(validationResult.ToDictionary());
+            }
+
 
             var current_user = httpCtx.Items["current_user"] as CustomerOverviewDTO;
             var cc = await customerCartSvc.FindCartItemInMyCartById(cts.Token, current_user!.id, cartItemId, false, true);

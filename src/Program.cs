@@ -5,7 +5,9 @@ using ECommerce.Router;
 using ECommerce.Service;
 using ECommerce.Service.Interface;
 using ECommerce.Store;
+using ECommerce.Types;
 using ECommerce.Util;
+using FluentValidation;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Http.Json;
 using Microsoft.AspNetCore.HttpLogging;
@@ -93,6 +95,16 @@ builder.Services.AddHostedService(provider => provider.GetRequiredService<EmailB
 
 builder.Services.AddSingleton<RestockProductBackgroundService>();
 builder.Services.AddHostedService(provider => provider.GetRequiredService<RestockProductBackgroundService>());
+
+builder.Services.AddScoped<IValidator<LoginDTO>, LoginValidator>();
+builder.Services.AddScoped<IValidator<CreateCustomerDTO>, CreateCustomerValidator>();
+builder.Services.AddScoped<IValidator<EditCustomerDTO>, EditCustomerValidator>();
+builder.Services.AddScoped<IValidator<UpsertCustomerAddressDTO>, UpsertCustomerAddressValidator>();
+builder.Services.AddScoped<IValidator<UpsertProductCategoryDTO>, UpsertProductCategoryValidator>();
+builder.Services.AddScoped<IValidator<EditCustomerCartDTO>, EditCustomerCartValidator>();
+builder.Services.AddScoped<IValidator<CustomerCartDTO>, CustomerCartValidator>();
+builder.Services.AddScoped<IValidator<CreateProductDTO>, CreateProductValidator>();
+builder.Services.AddScoped<IValidator<EditProductDTO>, EditProductValidator>();
 
 builder.Services.AddScoped<JwtService>();
 builder.Services.AddScoped<PasswordService>();

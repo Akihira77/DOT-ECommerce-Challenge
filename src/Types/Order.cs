@@ -45,6 +45,5 @@ public class OrderItem
 }
 
 public record CreateOrderDTO(IEnumerable<CustomerCartDTO> myCart);
-public record OrderJob(int orderId, int customerId, IEnumerable<CustomerCart> myCart);
 public record FindOrderQueryDTO(string orderStatus);
 public record UpdateOrderDTO(string orderStatus);

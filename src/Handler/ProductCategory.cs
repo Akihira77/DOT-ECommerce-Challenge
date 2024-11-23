@@ -1,5 +1,6 @@
 using ECommerce.Service.Interface;
 using ECommerce.Types;
+using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ECommerce.Handler;
@@ -55,15 +56,22 @@ public static class ProductCategoryHandler
 
     public static async Task<IResult> CreateProductCategory(
         HttpContext httpCtx,
+        IValidator<UpsertProductCategoryDTO> validator,
         [FromServices] IProductCategoryService productCategorySvc,
-        [FromBody] UpsertProductCategoryDTO data)
+        [FromBody] UpsertProductCategoryDTO body)
     {
         try
         {
             var cts = CancellationTokenSource.CreateLinkedTokenSource(httpCtx.RequestAborted);
             cts.CancelAfter(TimeSpan.FromSeconds(2));
 
-            var pc = await productCategorySvc.CreateProductCategory(cts.Token, data);
+            var validationResult = await validator.ValidateAsync(body, cts.Token);
+            if (!validationResult.IsValid)
+            {
+                return Results.ValidationProblem(validationResult.ToDictionary());
+            }
+
+            var pc = await productCategorySvc.CreateProductCategory(cts.Token, body);
 
             return Results.Created(httpCtx.Request.Path, pc);
         }
@@ -76,14 +84,21 @@ public static class ProductCategoryHandler
 
     public static async Task<IResult> EditProductCategory(
         HttpContext httpCtx,
+        IValidator<UpsertProductCategoryDTO> validator,
         [FromServices] IProductCategoryService productCategorySvc,
         [FromRoute] int categoryId,
-        [FromBody] UpsertProductCategoryDTO data)
+        [FromBody] UpsertProductCategoryDTO body)
     {
         try
         {
             var cts = CancellationTokenSource.CreateLinkedTokenSource(httpCtx.RequestAborted);
             cts.CancelAfter(TimeSpan.FromSeconds(2));
+
+            var validationResult = await validator.ValidateAsync(body, cts.Token);
+            if (!validationResult.IsValid)
+            {
+                return Results.ValidationProblem(validationResult.ToDictionary());
+            }
 
             var pc = await productCategorySvc.FindProductCategoryById(cts.Token, categoryId, false, false);
             if (pc is null)
@@ -91,7 +106,7 @@ public static class ProductCategoryHandler
                 return new NotFoundError("Product Category is not found").ToResult();
             }
 
-            pc = await productCategorySvc.EditProductCategory(cts.Token, data, pc);
+            pc = await productCategorySvc.EditProductCategory(cts.Token, body, pc);
 
             return Results.Ok(pc);
         }

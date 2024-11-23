@@ -1,6 +1,7 @@
 using ECommerce.Service.Interface;
 using ECommerce.Types;
 using ECommerce.Util;
+using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ECommerce.Handler;
@@ -104,15 +105,32 @@ public static class CustomerHandler
 
     public static async Task<IResult> CreateCustomer(
         HttpContext httpCtx,
+        IValidator<CreateCustomerDTO> customerValidator,
+        IValidator<UpsertCustomerAddressDTO> customerAddressValidator,
         [FromServices] ICustomerService customerSvc,
-        [FromBody] CreateCustomerAndCustomerAddressDTO data)
+        [FromBody] CreateCustomerAndCustomerAddressDTO body)
     {
         try
         {
             var cts = CancellationTokenSource.CreateLinkedTokenSource(httpCtx.RequestAborted);
             cts.CancelAfter(TimeSpan.FromSeconds(2));
 
-            var c = await customerSvc.CreateCustomer(cts.Token, data.custData, data.addrData);
+            var validationResult = await customerValidator.ValidateAsync(body.custData, cts.Token);
+            if (!validationResult.IsValid)
+            {
+                return Results.ValidationProblem(validationResult.ToDictionary());
+            }
+
+            if (body.addrData is not null)
+            {
+                validationResult = await customerAddressValidator.ValidateAsync(body.addrData, cts.Token);
+                if (!validationResult.IsValid)
+                {
+                    return Results.ValidationProblem(validationResult.ToDictionary());
+                }
+            }
+
+            var c = await customerSvc.CreateCustomer(cts.Token, body.custData, body.addrData);
 
             return Results.Created(httpCtx.Request.Path, c);
         }
@@ -125,16 +143,23 @@ public static class CustomerHandler
 
     public static async Task<IResult> Login(
         HttpContext httpCtx,
+        IValidator<LoginDTO> validator,
         [FromServices] ICustomerService customerSvc,
         [FromServices] JwtService jwtSvc,
-        [FromBody] LoginDTO data)
+        [FromBody] LoginDTO body)
     {
         try
         {
             var cts = CancellationTokenSource.CreateLinkedTokenSource(httpCtx.RequestAborted);
             cts.CancelAfter(TimeSpan.FromSeconds(2));
 
-            var c = await customerSvc.FindCustomerByNameOrEmail(cts.Token, data.email, false);
+            var validationResult = await validator.ValidateAsync(body, cts.Token);
+            if (!validationResult.IsValid)
+            {
+                return Results.ValidationProblem(validationResult.ToDictionary());
+            }
+
+            var c = await customerSvc.FindCustomerByNameOrEmail(cts.Token, body.email, false);
             if (c is null)
             {
                 return new NotFoundError("Customer data is not found").ToResult();
@@ -160,17 +185,34 @@ public static class CustomerHandler
 
     public static async Task<IResult> EditCustomer(
         HttpContext httpCtx,
+        IValidator<EditCustomerDTO> customerValidator,
+        IValidator<CustomerAddress> customerAddressValidator,
         [FromServices] ICustomerService customerSvc,
-        [FromBody] EditCustomerAndCustomerAddressDTO data)
+        [FromBody] EditCustomerAndCustomerAddressDTO body)
     {
         try
         {
             var cts = CancellationTokenSource.CreateLinkedTokenSource(httpCtx.RequestAborted);
             cts.CancelAfter(TimeSpan.FromSeconds(2));
 
+            var validationResult = await customerValidator.ValidateAsync(body.custData, cts.Token);
+            if (!validationResult.IsValid)
+            {
+                return Results.ValidationProblem(validationResult.ToDictionary());
+            }
+
+            if (body.addrData is not null)
+            {
+                validationResult = await customerAddressValidator.ValidateAsync(body.addrData, cts.Token);
+                if (!validationResult.IsValid)
+                {
+                    return Results.ValidationProblem(validationResult.ToDictionary());
+                }
+            }
+
             var current_user = httpCtx.Items["current_user"] as CustomerOverviewDTO;
             var c = await customerSvc.FindCustomerById(cts.Token, current_user!.id, false);
-            c = await customerSvc.EditCustomer(cts.Token, data.custData, c!, data.addrData);
+            c = await customerSvc.EditCustomer(cts.Token, body.custData, c!, body.addrData);
 
             return Results.Ok(c);
         }
@@ -183,16 +225,23 @@ public static class CustomerHandler
 
     public static async Task<IResult> AddCustomerAddress(
         HttpContext httpCtx,
+        IValidator<UpsertCustomerAddressDTO> validator,
         [FromServices] ICustomerService customerSvc,
-        [FromBody] UpsertCustomerAddressDTO addrData)
+        [FromBody] UpsertCustomerAddressDTO body)
     {
         try
         {
             var cts = CancellationTokenSource.CreateLinkedTokenSource(httpCtx.RequestAborted);
             cts.CancelAfter(TimeSpan.FromSeconds(2));
 
+            var validationResult = await validator.ValidateAsync(body, cts.Token);
+            if (!validationResult.IsValid)
+            {
+                return Results.ValidationProblem(validationResult.ToDictionary());
+            }
+
             var current_user = httpCtx.Items["current_user"] as CustomerOverviewDTO;
-            var c = await customerSvc.AddCustomerAddress(cts.Token, current_user!.id, addrData);
+            var c = await customerSvc.AddCustomerAddress(cts.Token, current_user!.id, body);
             if (!c)
             {
                 return new BadRequestError("Adding new customer address error").ToResult();

@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using FluentValidation;
 using Riok.Mapperly.Abstractions;
 
 namespace ECommerce.Types;
@@ -39,13 +40,6 @@ public class CustomerCart
     public int Quantity { get; set; } = 1;
 }
 
-public enum ChangeItemQuantity
-{
-    INCREASE_OR_DECREASE,
-    CHANGE
-}
-
-// DTO excluding password
 public record CustomerOverviewDTO(int id, string name, string email, UserRoles role);
 public record LoginDTO(string email, string password);
 public record CreateCustomerDTO(string name, string email, string password);
@@ -63,4 +57,89 @@ public static partial class CustomerMapper
     public static partial IQueryable<CustomerOverviewDTO> ToCustomersOverviewDTO(this IQueryable<Customer> c);
     public static partial CustomerCartOverviewDTO ToDTO(this CustomerCart cc);
     public static partial IQueryable<CustomerCartOverviewDTO> ToDTOS(this IQueryable<CustomerCart> cc);
+}
+
+public class LoginValidator : AbstractValidator<LoginDTO>
+{
+    public LoginValidator()
+    {
+        RuleFor(x => x.email)
+            .NotNull().WithMessage("Email cannot be null")
+            .NotEmpty().WithMessage("Email cannot be empty")
+            .EmailAddress().WithMessage("Invalid Email");
+
+        RuleFor(x => x.password)
+            .NotNull().WithMessage("Password cannot be null")
+            .NotEmpty().WithMessage("Password cannot be empty")
+            .Length(min: 8, max: 16).WithMessage("Password length must be between 8 and 16 characters");
+    }
+}
+
+public class CreateCustomerValidator : AbstractValidator<CreateCustomerDTO>
+{
+    public CreateCustomerValidator()
+    {
+        RuleFor(x => x.email)
+            .NotNull().WithMessage("Email cannot be null")
+            .NotEmpty().WithMessage("Email cannot be empty")
+            .EmailAddress().WithMessage("Invalid Email");
+
+        RuleFor(x => x.password)
+            .NotNull().WithMessage("Password cannot be null")
+            .NotEmpty().WithMessage("Password cannot be empty")
+            .Length(min: 8, max: 16).WithMessage("Password length must be between 8 and 16 characters");
+
+        RuleFor(x => x.name)
+            .NotNull().WithMessage("Name cannot be null")
+            .NotEmpty().WithMessage("Name cannot be empty");
+    }
+}
+
+public class EditCustomerValidator : AbstractValidator<EditCustomerDTO>
+{
+    public EditCustomerValidator()
+    {
+        RuleFor(x => x.email)
+            .NotNull().WithMessage("Email cannot be null")
+            .NotEmpty().WithMessage("Email cannot be empty")
+            .EmailAddress().WithMessage("Invalid Email");
+
+        RuleFor(x => x.name)
+            .NotNull().WithMessage("Name cannot be null")
+            .NotEmpty().WithMessage("Name cannot be empty");
+
+        RuleFor(x => x.role)
+            .NotNull().WithMessage("Role cannot be null")
+            .NotEmpty().WithMessage("Role cannot be empty")
+            .IsInEnum().WithMessage("Role is invalid");
+    }
+}
+
+public class CustomerCartValidator : AbstractValidator<CustomerCartDTO>
+{
+    public CustomerCartValidator()
+    {
+        RuleFor(x => x.productId)
+            .NotNull().WithMessage("Product id cannot be null")
+            .NotEmpty().WithMessage("Product id cannot be empty")
+            .GreaterThan(0).WithMessage("Product id is invalid");
+
+        RuleFor(x => x.quantity)
+            .NotNull().WithMessage("Quantity cannot be null")
+            .NotEmpty().WithMessage("Quantity cannot be empty")
+            .GreaterThan(0).WithMessage("Quantity must greater than 0")
+            .LessThanOrEqualTo(Int32.MaxValue).WithMessage("Quantity is too many");
+    }
+}
+
+public class EditCustomerCartValidator : AbstractValidator<EditCustomerCartDTO>
+{
+    public EditCustomerCartValidator()
+    {
+        RuleFor(x => x.quantity)
+            .NotNull().WithMessage("Quantity cannot be null")
+            .NotEmpty().WithMessage("Quantity cannot be empty")
+            .GreaterThan(0).WithMessage("Quantity must greater than 0")
+            .LessThanOrEqualTo(Int32.MaxValue).WithMessage("Quantity is too many");
+    }
 }
