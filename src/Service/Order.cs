@@ -1,3 +1,4 @@
+using System.Globalization;
 using ECommerce.Service.Interface;
 using ECommerce.Store;
 using ECommerce.Types;
@@ -35,19 +36,6 @@ public class OrderService : IOrderService
         {
             ct.ThrowIfCancellationRequested();
 
-            var calculateAmount = decimal (decimal productPrice, int quantity, decimal productCategoryDiscount, decimal productDiscount) =>
-            {
-                productCategoryDiscount = (productCategoryDiscount > 0.00m && productCategoryDiscount <= 100.00m)
-                    ? (100.00m - productCategoryDiscount) / 100
-                    : 1;
-
-                productDiscount = (productDiscount > 0.00m && productDiscount <= 100.00m)
-                    ? (100.00m - productDiscount) / 100
-                    : 1;
-
-                return Math.Round(productPrice * quantity * productCategoryDiscount * productDiscount, 2);
-            };
-
             var now = DateTime.Now;
             var o = new Order
             {
@@ -55,7 +43,7 @@ public class OrderService : IOrderService
                 OrderStatus = OrderStatus.WAITING_PAYMENT,
                 CreatedAt = now,
                 Deadline = now.AddDays(1),
-                Amount = myCart.Sum(cc => calculateAmount(cc.Product!.Price, cc.Quantity, cc.Product!.ProductCategory!.DiscountPercentage, cc.Product!.DiscountPercentage)),
+                TotalAmount = myCart.Sum(cc => cc.Amount),
                 Version = 1,
             };
             await this.ctx.Orders.AddAsync(o, ct);
@@ -64,7 +52,7 @@ public class OrderService : IOrderService
                 .Select(cc => cc.ProductId)
                 .ToList();
             var products = await this.ctx.Products
-                .FromSqlInterpolated($@"
+                .FromSqlRaw($@"
                         SELECT * FROM Products WITH (UPDLOCK, ROWLOCK) 
                         WHERE Id IN ({string.Join(",", productIds)})"
                 )
@@ -88,6 +76,7 @@ public class OrderService : IOrderService
                     OrderId = o.Id,
                     ProductId = item.ProductId,
                     Quantity = item.Quantity,
+                    Amount = item.Amount
                 });
             }
 
@@ -242,16 +231,17 @@ public class OrderService : IOrderService
         try
         {
             var orderStatus = data.orderStatus.ToEnumOrThrow<OrderStatus>();
-            var updatedOrder = await this
+            var updatedOrder = this
                 .ctx
                 .Orders
-                .FromSqlInterpolated($@"
+                .FromSql($@"
                         UPDATE Orders 
-                        SET Status = {orderStatus}, Version = Version + 1 
+                        SET OrderStatus = {orderStatus}, Version = Version + 1 
                         OUTPUT INSERTED.*
-                        WHERE OrderID = {o.Id} AND Version = {o.Version}"
+                        WHERE Id = {o.Id} AND Version = {o.Version}"
                 )
-                .FirstOrDefaultAsync(ct);
+                .AsEnumerable()
+                .SingleOrDefault();
 
             if (updatedOrder is null)
             {
@@ -278,7 +268,7 @@ public class OrderService : IOrderService
         {
             ct.ThrowIfCancellationRequested();
 
-            string subject = $"Transactions Report Periode [{startDate.ToShortDateString()}-{endDate.ToShortDateString()}]";
+            string subject = $"Transactions Report Periode [{startDate:yyyy-MM-dd}__{endDate:yyyy-MM-dd}]";
             string body = "Transactions Report";
             var orderTransactions = await this.ctx
                 .OrderTransactions
@@ -289,7 +279,7 @@ public class OrderService : IOrderService
                 .ToListAsync();
 
             var outputPath = Path
-                .Combine("Reports", $"Report_[{startDate.ToShortDateString()}-{endDate.ToShortDateString()}].pdf");
+                .Combine("Reports", $"Report_[{startDate:yyyy-MM-dd}__{endDate:yyyy-MM-dd}].pdf");
 
             // Ensure the Reports directory exists
             Directory.CreateDirectory("Reports");
@@ -299,13 +289,14 @@ public class OrderService : IOrderService
             var document = new Document(pdf);
 
             document.Add(new Paragraph("Order Transactions Report").SetFontSize(18));
+            document.Add(new Paragraph($"Period: [{startDate:yyyy/MM/dd} - {endDate:yyyy/MM/dd}]").SetFontSize(12));
             document.Add(new Paragraph($"Generated On: {DateTime.UtcNow}").SetFontSize(12));
 
             var table = new Table(6);
-            table.AddHeaderCell("Transaction ID");
+            table.AddHeaderCell("ID");
             table.AddHeaderCell("Customer ID");
-            table.AddHeaderCell("Amount");
-            table.AddHeaderCell("Transaction Date");
+            table.AddHeaderCell("Total Amount");
+            table.AddHeaderCell("Date");
             table.AddHeaderCell("Payment Method");
             table.AddHeaderCell("Payment Status");
 
@@ -313,7 +304,7 @@ public class OrderService : IOrderService
             {
                 table.AddCell(transaction.Id.ToString());
                 table.AddCell(transaction.Order!.CustomerId.ToString());
-                table.AddCell(transaction.Order!.Amount.ToString("C")); // Currency format
+                table.AddCell(transaction.Order!.TotalAmount.ToString("C", CultureInfo.CreateSpecificCulture("id-ID"))); // Currency format
                 table.AddCell(transaction.Order!.CreatedAt.ToString("yyyy-MM-dd HH:mm:ss"));
                 table.AddCell(transaction.PaymentMethod.ToString());
                 table.AddCell(transaction.PaymentStatus.ToString());

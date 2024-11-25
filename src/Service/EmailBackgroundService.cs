@@ -28,10 +28,11 @@ public class EmailBackgroundService : BackgroundService
         {
             try
             {
+                //FIX: IDK WHY THIS IS NOT WORKING
                 var emailData = await this.emailChannel.Reader.ReadAsync(stoppingToken);
                 await this.emailSender.SendEmail(stoppingToken, emailData);
             }
-            catch (OperationCanceledException err)
+            catch (System.Exception err)
             {
                 this.logger.LogError($"Error in {err.Source} - {err.Message}");
             }

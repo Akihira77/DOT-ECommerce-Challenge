@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using FluentValidation;
 using Riok.Mapperly.Abstractions;
 
@@ -30,6 +31,9 @@ public class CustomerCart
 {
     [Key]
     public int Id { get; set; }
+    public int Quantity { get; set; }
+    [Column(TypeName = "decimal(18,4)")]
+    public decimal Amount { get; set; }
 
     public int CustomerId { get; set; }
     public Customer? Customer { get; set; }
@@ -37,7 +41,6 @@ public class CustomerCart
     public int ProductId { get; set; }
     public Product? Product { get; set; }
 
-    public int Quantity { get; set; } = 1;
 }
 
 public record CustomerOverviewDTO(int id, string name, string email, UserRoles role);
@@ -47,7 +50,7 @@ public record CreateCustomerAndCustomerAddressDTO(CreateCustomerDTO custData, Up
 public record EditCustomerDTO(string name, string email, UserRoles role);
 public record EditCustomerAndCustomerAddressDTO(EditCustomerDTO custData, CustomerAddress? addrData);
 public record CustomerCartDTO(int productId, int quantity);
-public record CustomerCartOverviewDTO(int id, ProductDTO product, int quantity);
+public record CustomerCartOverviewDTO(int id, ProductDTO product, int quantity, decimal amount);
 public record EditCustomerCartDTO(int quantity);
 
 [Mapper()]

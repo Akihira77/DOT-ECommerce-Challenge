@@ -56,10 +56,6 @@ public class FindProductQueryValidator : AbstractValidator<FindProductsQueryDTO>
 {
     public FindProductQueryValidator()
     {
-        RuleFor(x => x.name)
-            .NotNull().WithMessage("Product name cannot be null")
-            .NotEmpty().WithMessage("Product name cannot be empty");
-
         RuleFor(x => x.minPrice)
             .LessThanOrEqualTo(Int32.MaxValue).WithMessage("Product price is too large")
             .GreaterThanOrEqualTo(0).WithMessage("Product price is too low");

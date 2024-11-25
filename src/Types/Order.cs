@@ -9,7 +9,7 @@ public class Order
     public int Id { get; set; }
     public OrderStatus OrderStatus { get; set; }
     [Column(TypeName = "decimal(18,4)")]
-    public decimal Amount { get; set; }
+    public decimal TotalAmount { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime Deadline { get; set; }
     public int Version { get; set; }
@@ -36,6 +36,8 @@ public class OrderItem
     [Key]
     public int Int { get; set; }
     public int Quantity { get; set; }
+    [Column(TypeName = "decimal(18,4)")]
+    public decimal Amount { get; set; }
 
     public int ProductId { get; set; }
     public Product? Product { get; set; }

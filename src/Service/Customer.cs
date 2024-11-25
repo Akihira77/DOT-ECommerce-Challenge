@@ -166,6 +166,8 @@ public class CustomerService : ICustomerService
             await this.ctx.Customers.AddAsync(c, ct);
             await this.ctx.SaveChangesAsync(ct);
             await tx.CommitAsync(ct);
+
+            this.emailBackgroundSvc.QueueEmail(new sendEmailData(c.Email, "Account Registered", $"Account with email {c.Email} has been registered", null));
             return c;
         }
         catch (System.Exception err)

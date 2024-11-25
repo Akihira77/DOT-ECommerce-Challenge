@@ -50,7 +50,7 @@ public static class CustomerCartHandler
                 return Results.ValidationProblem(validationResult.ToDictionary());
             }
 
-            var p = await productService.FindProductById(cts.Token, body.productId, false, false);
+            var p = await productService.FindProductById(cts.Token, body.productId, false, true);
             if (p is null)
             {
                 return new NotFoundError("Product is not found").ToResult();
@@ -73,7 +73,7 @@ public static class CustomerCartHandler
                 return new BadRequestError("The Product is already in your cart.").ToResult();
             }
 
-            await customerCartSvc.AddItemToCart(cts.Token, current_user!.id, body);
+            await customerCartSvc.AddItemToCart(cts.Token, current_user!.id, body, p);
             var myCart = customerCartSvc.FindItemsInMyCart(cts.Token, current_user!.id).ToDTOS().AsEnumerable();
             return Results.Ok(myCart);
         }
@@ -140,7 +140,6 @@ public static class CustomerCartHandler
                 return Results.ValidationProblem(validationResult.ToDictionary());
             }
 
-
             var current_user = httpCtx.Items["current_user"] as CustomerOverviewDTO;
             var cc = await customerCartSvc.FindCartItemInMyCartById(cts.Token, current_user!.id, cartItemId, false, true);
             if (cc is null)
@@ -152,8 +151,6 @@ public static class CustomerCartHandler
             {
                 return new BadRequestError("Product quantity is invalid. Please input the correct number").ToResult();
             }
-
-            cc = await customerCartSvc.EditItemQuantity(cts.Token, body.quantity, cc);
 
             if (cc.Product!.Stock < cc.Quantity + body.quantity)
             {

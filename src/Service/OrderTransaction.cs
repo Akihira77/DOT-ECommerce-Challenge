@@ -24,6 +24,9 @@ public class OrderTransactionService : IOrderTransactionService
         {
             ct.ThrowIfCancellationRequested();
 
+            o.OrderStatus = OrderStatus.PROCESS;
+            this.ctx.Update(o);
+
             var ot = new OrderTransaction
             {
                 OrderId = o.Id,
@@ -33,8 +36,6 @@ public class OrderTransactionService : IOrderTransactionService
             };
             await this.ctx.OrderTransactions.AddAsync(ot, ct);
 
-            o.OrderStatus = OrderStatus.PROCESS;
-            this.ctx.Update(o);
 
             await this.ctx.SaveChangesAsync(ct);
             await tx.CommitAsync(ct);

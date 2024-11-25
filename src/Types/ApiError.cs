@@ -48,6 +48,17 @@ public class BadRequestError : ApiError
     }
 }
 
+public class UnauthorizedError : ApiError
+{
+    public UnauthorizedError(string detail)
+        : base(type: nameof(UnauthorizedError),
+               title: "Unauthorized",
+               detail: detail,
+               statusCode: StatusCodes.Status401Unauthorized)
+    {
+    }
+}
+
 public class ForbiddenError : ApiError
 {
     public ForbiddenError(string detail)

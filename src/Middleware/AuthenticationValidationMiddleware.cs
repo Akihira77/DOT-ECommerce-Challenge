@@ -18,7 +18,7 @@ public static class AuthenticationValidationMiddleware
             }
 
             Console.WriteLine($"Customer is not authenticated");
-            return Results.Unauthorized();
+            return new UnauthorizedError("Sign-in first").ToResult();
         };
     }
 
@@ -35,7 +35,7 @@ public static class AuthenticationValidationMiddleware
             }
 
             Console.WriteLine($"Customer is not an ADMIN {current_user}");
-            return Results.StatusCode(StatusCodes.Status403Forbidden);
+            return new ForbiddenError("You dont have the right permission for this feature").ToResult();
         };
     }
 

@@ -85,11 +85,14 @@ builder.Services.AddProblemDetails(o =>
     };
 });
 
+builder.Services.AddSingleton(resolver =>
+        resolver.GetRequiredService<IOptions<EmailConfiguration>>().Value);
 builder.Services.Configure<EmailConfiguration>(
     builder.Configuration.GetSection("EtherealEmailConfiguration"));
-builder.Services.AddSingleton(resolver =>
-    resolver.GetRequiredService<IOptions<EmailConfiguration>>().Value);
 builder.Services.AddSingleton<IEmailSender, EtherealEmailSender>();
+// builder.Services.Configure<EmailConfiguration>(
+//     builder.Configuration.GetSection("GmailConfiguration"));
+// builder.Services.AddSingleton<IEmailSender, GmailEmailSender>();
 builder.Services.AddSingleton<EmailBackgroundService>();
 builder.Services.AddHostedService(provider => provider.GetRequiredService<EmailBackgroundService>());
 
@@ -103,6 +106,7 @@ builder.Services.AddScoped<IValidator<UpsertCustomerAddressDTO>, UpsertCustomerA
 builder.Services.AddScoped<IValidator<UpsertProductCategoryDTO>, UpsertProductCategoryValidator>();
 builder.Services.AddScoped<IValidator<EditCustomerCartDTO>, EditCustomerCartValidator>();
 builder.Services.AddScoped<IValidator<CustomerCartDTO>, CustomerCartValidator>();
+builder.Services.AddScoped<IValidator<FindProductsQueryDTO>, FindProductQueryValidator>();
 builder.Services.AddScoped<IValidator<CreateProductDTO>, CreateProductValidator>();
 builder.Services.AddScoped<IValidator<EditProductDTO>, EditProductValidator>();
 builder.Services.AddScoped<IValidator<CustomerAddress>, CustomerAddressValidator>();

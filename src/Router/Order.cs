@@ -28,7 +28,7 @@ public static class OrderRouter
             AddEndpointFilterFactory(AuthenticationValidationMiddleware.RequireAdmin);
 
         requireAdminGroup.MapGet("", OrderHandler.FindOrders);
-        requireAdminGroup.MapGet("/generate-report", OrderHandler.GenerateReport);
+        requireAdminGroup.MapGet("/report/generate", OrderHandler.GenerateReport);
         requireAdminGroup.MapGet("/{id}", OrderHandler.FindOrderById);
         requireAdminGroup.MapPatch("/{orderId}", OrderHandler.UpdateOrderStatus);
     }

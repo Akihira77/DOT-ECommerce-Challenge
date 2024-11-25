@@ -26,7 +26,8 @@ public interface ICustomerCartService
     Task<bool> AddItemToCart(
         CancellationToken ct,
         int customerId,
-        CustomerCartDTO item);
+        CustomerCartDTO item,
+        Product p);
     Task<CustomerCart> EditItemQuantity(
         CancellationToken ct,
         int quantity,

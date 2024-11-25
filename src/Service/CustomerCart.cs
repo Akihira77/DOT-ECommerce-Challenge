@@ -21,7 +21,8 @@ public class CustomerCartService : ICustomerCartService
     public async Task<bool> AddItemToCart(
         CancellationToken ct,
         int customerId,
-        CustomerCartDTO item)
+        CustomerCartDTO item,
+        Product p)
     {
         try
         {
@@ -32,6 +33,7 @@ public class CustomerCartService : ICustomerCartService
                 CustomerId = customerId,
                 ProductId = item.productId,
                 Quantity = item.quantity,
+                Amount = p.Price * item.quantity * ((100.00m - p.ProductCategory!.DiscountPercentage) / 100.00m) * ((100.00m - p.DiscountPercentage) / 100.00m)
             };
             this.ctx.CustomerCarts.Add(cc);
             var result = await this.ctx.SaveChangesAsync(ct) > 0;
@@ -55,6 +57,7 @@ public class CustomerCartService : ICustomerCartService
             ct.ThrowIfCancellationRequested();
 
             cc.Quantity = quantity;
+            cc.Amount = cc.Product!.Price * quantity * ((100.00m - cc.Product!.ProductCategory!.DiscountPercentage) / 100.00m) * ((100.00m - cc.Product!.DiscountPercentage) / 100.00m);
 
             this.ctx.CustomerCarts.Update(cc);
             await this.ctx.SaveChangesAsync(ct);
@@ -148,7 +151,9 @@ public class CustomerCartService : ICustomerCartService
 
             if (includeProduct)
             {
-                query = query.Include(cc => cc.Product);
+                query = query
+                    .Include(cc => cc.Product)
+                        .ThenInclude(p => p!.ProductCategory);
             }
 
             return await query.FirstOrDefaultAsync(
