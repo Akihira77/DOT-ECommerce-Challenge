@@ -9,6 +9,7 @@ public class ApplicationDbContext : DbContext
     {
     }
 
+#pragma warning disable CS8618 // Non-nullable property must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
     public DbSet<Customer> Customers { get; set; }
     public DbSet<CustomerAddress> CustomerAddresses { get; set; }
     public DbSet<CustomerCart> CustomerCarts { get; set; }
@@ -18,9 +19,16 @@ public class ApplicationDbContext : DbContext
     public DbSet<OrderItem> OrderItems { get; set; }
     public DbSet<OrderTransaction> OrderTransactions { get; set; }
     public DbSet<CustomerOrderHistory> CustomerOrderHistories { get; set; }
+#pragma warning restore CS8618
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.Entity<Customer>().
+            HasIndex(p => p.Email).
+            IsUnique();
+        modelBuilder.Entity<Customer>().
+            HasIndex(p => p.Name);
+
         modelBuilder.Entity<CustomerAddress>().
             HasOne<Customer>(ca => ca.Customer).
             WithMany(c => c.CustomerAddresses).
@@ -45,15 +53,26 @@ public class ApplicationDbContext : DbContext
             HasForeignKey(cc => cc.CustomerId).
             OnDelete(DeleteBehavior.Cascade);
 
+        modelBuilder.Entity<Product>().
+            HasIndex(p => p.Name).
+            IsUnique();
+        modelBuilder.Entity<Product>()
+            .ToTable(p => p.HasCheckConstraint("CK_DiscountPercentage_Range", "[DiscountPercentage] BETWEEN 0 AND 100"));
+        modelBuilder.Entity<ProductCategory>().
+            HasIndex(p => p.Name).
+            IsUnique();
+        modelBuilder.Entity<ProductCategory>()
+            .ToTable(p => p.HasCheckConstraint("CK_DiscountPercentage_Range", "[DiscountPercentage] BETWEEN 0 AND 100"));
+
         //TODO: THINK AGAIN!
         modelBuilder.Entity<Product>().
-            HasOne<ProductCategory>(pc => pc.Category).
+            HasOne<ProductCategory>(pc => pc.ProductCategory).
             WithMany(c => c.Products).
-            HasForeignKey(pc => pc.CategoryId).
+            HasForeignKey(pc => pc.ProductCategoryId).
             OnDelete(DeleteBehavior.SetNull);
 
         modelBuilder.Entity<Order>().
-            HasOne<OrderTransaction>(o => o.Transaction).
+            HasOne<OrderTransaction>(o => o.OrderTransaction).
             WithOne(ot => ot.Order).
             HasForeignKey<OrderTransaction>(ot => ot.OrderId).
             OnDelete(DeleteBehavior.Cascade);

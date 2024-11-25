@@ -1,118 +1,150 @@
-using ECommerce.Service;
+using ECommerce.Service.Interface;
 using ECommerce.Types;
-using Microsoft.AspNetCore.Http.HttpResults;
+using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ECommerce.Handler;
 
 public static class ProductCategoryHandler
 {
-    public static async Task<Results<Ok<IEnumerable<ProductCategory>>, BadRequest<string>>> FindProductCategories(
+    public static async Task<IResult> FindProductCategories(
+        HttpContext httpCtx,
         [FromServices] IProductCategoryService productCategorySvc,
         [FromQuery] bool includeProducts = false)
     {
         try
         {
-            var productCategories = await productCategorySvc.FindProductCategories(false, includeProducts);
+            var cts = CancellationTokenSource.CreateLinkedTokenSource(httpCtx.RequestAborted);
+            cts.CancelAfter(TimeSpan.FromSeconds(2));
 
-            return TypedResults.Ok(productCategories);
+            var productCategories = await productCategorySvc.FindProductCategories(cts.Token, false, includeProducts);
+
+            return Results.Ok(productCategories);
         }
         catch (System.Exception err)
         {
             Console.WriteLine($"There are errors {err}");
-            return TypedResults.BadRequest("Unexpected error happened.");
+            return new InternalServerError("Unexpected error happened.").ToResult();
         }
     }
 
-    public static async Task<Results<Ok<ProductCategory>, NotFound<string>, BadRequest<string>>> FindProductCategoryById([FromServices] IProductCategoryService productCategorySvc,
+    public static async Task<IResult> FindProductCategoryById(
+        HttpContext httpCtx,
+        [FromServices] IProductCategoryService productCategorySvc,
         [FromRoute] int id,
         [FromQuery] bool includeProducts = false)
     {
         try
         {
-            var productCategory = await productCategorySvc.FindProductCategoryById(id, false, includeProducts);
-            if (productCategory is null)
+            var cts = CancellationTokenSource.CreateLinkedTokenSource(httpCtx.RequestAborted);
+            cts.CancelAfter(TimeSpan.FromSeconds(2));
+
+            var pc = await productCategorySvc.FindProductCategoryById(cts.Token, id, false, includeProducts);
+            if (pc is null)
             {
-                return TypedResults.NotFound("Product Category did not found");
+                return new NotFoundError("Product Category is not found").ToResult();
             }
 
-            return TypedResults.Ok(productCategory);
+            return Results.Ok(pc);
         }
         catch (System.Exception err)
         {
             Console.WriteLine($"There are errors {err}");
-            return TypedResults.BadRequest("Unexpected error happened.");
+            return new InternalServerError("Unexpected error happened.").ToResult();
         }
     }
 
-    public static async Task<Results<Created<ProductCategory>, BadRequest<string>>> CreateProductCategory(
+    public static async Task<IResult> CreateProductCategory(
         HttpContext httpCtx,
+        [FromServices] IValidator<UpsertProductCategoryDTO> validator,
         [FromServices] IProductCategoryService productCategorySvc,
-        [FromBody] UpsertProductCategoryDTO data)
+        [FromBody] UpsertProductCategoryDTO body)
     {
         try
         {
-            var productCategory = await productCategorySvc.CreateProductCategory(data);
+            var cts = CancellationTokenSource.CreateLinkedTokenSource(httpCtx.RequestAborted);
+            cts.CancelAfter(TimeSpan.FromSeconds(2));
 
-            return TypedResults.Created(httpCtx.Request.Path, productCategory);
+            var validationResult = await validator.ValidateAsync(body, cts.Token);
+            if (!validationResult.IsValid)
+            {
+                return Results.ValidationProblem(validationResult.ToDictionary());
+            }
+
+            var pc = await productCategorySvc.CreateProductCategory(cts.Token, body);
+
+            return Results.Created(httpCtx.Request.Path, pc);
         }
         catch (System.Exception err)
         {
             Console.WriteLine($"There are errors {err}");
-            return TypedResults.BadRequest("Unexpected error happened.");
+            return new InternalServerError("Unexpected error happened.").ToResult();
         }
     }
 
-    public static async Task<Results<Ok<ProductCategory>, NotFound<string>, BadRequest<string>>> EditProductCategory(
+    public static async Task<IResult> EditProductCategory(
         HttpContext httpCtx,
+        [FromServices] IValidator<UpsertProductCategoryDTO> validator,
         [FromServices] IProductCategoryService productCategorySvc,
         [FromRoute] int categoryId,
-        [FromBody] UpsertProductCategoryDTO data)
+        [FromBody] UpsertProductCategoryDTO body)
     {
         try
         {
-            var productCategory = await productCategorySvc.FindProductCategoryById(categoryId, false, false);
-            if (productCategory is null)
+            var cts = CancellationTokenSource.CreateLinkedTokenSource(httpCtx.RequestAborted);
+            cts.CancelAfter(TimeSpan.FromSeconds(2));
+
+            var validationResult = await validator.ValidateAsync(body, cts.Token);
+            if (!validationResult.IsValid)
             {
-                return TypedResults.NotFound("Product Category did not found");
+                return Results.ValidationProblem(validationResult.ToDictionary());
             }
 
-            productCategory = await productCategorySvc.EditProductCategory(data, productCategory);
+            var pc = await productCategorySvc.FindProductCategoryById(cts.Token, categoryId, false, false);
+            if (pc is null)
+            {
+                return new NotFoundError("Product Category is not found").ToResult();
+            }
 
-            return TypedResults.Ok(productCategory);
+            pc = await productCategorySvc.EditProductCategory(cts.Token, body, pc);
+
+            return Results.Ok(pc);
         }
         catch (System.Exception err)
         {
             Console.WriteLine($"There are errors {err}");
-            return TypedResults.BadRequest("Unexpected error happened.");
+            return new InternalServerError("Unexpected error happened.").ToResult();
         }
     }
 
-    public static async Task<Results<Ok<string>, NotFound<string>, BadRequest<string>>> DeleteProductCategory(
+    public static async Task<IResult> DeleteProductCategory(
         HttpContext httpCtx,
         [FromServices] IProductCategoryService productCategorySvc,
         [FromRoute] int categoryId)
     {
         try
         {
-            var productCategory = await productCategorySvc.FindProductCategoryById(categoryId, false, false);
-            if (productCategory is null)
+            var cts = CancellationTokenSource.CreateLinkedTokenSource(httpCtx.RequestAborted);
+            cts.CancelAfter(TimeSpan.FromSeconds(2));
+
+            var pc = await productCategorySvc.FindProductCategoryById(cts.Token, categoryId, false, false);
+            if (pc is null)
             {
-                return TypedResults.NotFound("Product Category did not found");
+                return new NotFoundError("Product Category is not found").ToResult();
             }
 
-            var result = await productCategorySvc.DeleteProductCategory(productCategory);
+            var result = await productCategorySvc.DeleteProductCategory(cts.Token, pc);
             if (!result)
             {
-                return TypedResults.BadRequest("Deleting Product Category failed");
+                return new BadRequestError("Deleting Product Category failed").ToResult();
             }
 
-            return TypedResults.Ok("Deleting Product Category success");
+            return Results.Ok("Deleting Product Category success");
         }
         catch (System.Exception err)
         {
             Console.WriteLine($"There are errors {err}");
-            return TypedResults.BadRequest("Unexpected error happened.");
+            return new InternalServerError("Unexpected error happened.").ToResult();
         }
     }
 }
