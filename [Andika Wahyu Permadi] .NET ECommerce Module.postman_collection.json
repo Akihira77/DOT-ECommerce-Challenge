@@ -1,0 +1,940 @@
+{
+	"info": {
+		"_postman_id": "d959242c-c845-4ca4-8581-9acc5f9d09bb",
+		"name": "[Andika Wahyu Permadi] .NET ECommerce Module",
+		"description": "API Toko Online (ECommerce) berbasis .NET Core 8, C#, SQL Server, dan Entity Framework Core",
+		"schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json",
+		"_exporter_id": "24368336"
+	},
+	"item": [
+		{
+			"name": "Customer",
+			"item": [
+				{
+					"name": "Admin",
+					"item": [
+						{
+							"name": "Login Admin",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"email\": \"kieran.aufderhar73@ethereal.email\",\r\n    \"password\": \"d2pW4YbVm2XPBMMHKp\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": "localhost:6000/api/customers/login",
+								"description": "Melakukan login untuk akun dengan role Admin."
+							},
+							"response": []
+						},
+						{
+							"name": "Change User Roles",
+							"request": {
+								"method": "PATCH",
+								"header": [],
+								"url": {
+									"raw": "localhost:6000/api/customers/admin/change-roles/:customerId?role=customer",
+									"host": [
+										"localhost"
+									],
+									"port": "6000",
+									"path": [
+										"api",
+										"customers",
+										"admin",
+										"change-roles",
+										":customerId"
+									],
+									"query": [
+										{
+											"key": "role",
+											"value": "customer"
+										}
+									],
+									"variable": [
+										{
+											"key": "customerId",
+											"value": "2004"
+										}
+									]
+								},
+								"description": "Mengubah role user.\n\n1. customerId \\[integer\\]: customerId milik Customer.\n    \n2. role \\[admin/customer\\]: role yang ingin diterapkan pada user ini."
+							},
+							"response": []
+						},
+						{
+							"name": "Delete Customer",
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "localhost:6000/api/customers/admin/:customerId",
+									"host": [
+										"localhost"
+									],
+									"port": "6000",
+									"path": [
+										"api",
+										"customers",
+										"admin",
+										":customerId"
+									],
+									"variable": [
+										{
+											"key": "customerId",
+											"value": "1"
+										}
+									]
+								},
+								"description": "Menghapus data Customer/Admin dengan_._\n\n1. customerId \\[integer\\]: customerId milik Customer."
+							},
+							"response": []
+						}
+					],
+					"description": "### Kumpulan Endpoints khusus untuk Admin.\n\n1. Admin dapat mengubah role pengguna lainnya menjadi Admin.\n    \n2. Admin dapat melihat seluruh data Customer.\n    \n3. Admin dapat menghapus data Customer."
+				},
+				{
+					"name": "Find Customers",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": "localhost:6000/api/customers",
+						"description": "Mencari dan melihat seluruh data Customer."
+					},
+					"response": []
+				},
+				{
+					"name": "Find Customer By Id",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "localhost:6000/api/customers/id/:id",
+							"host": [
+								"localhost"
+							],
+							"port": "6000",
+							"path": [
+								"api",
+								"customers",
+								"id",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "1013"
+								}
+							]
+						},
+						"description": "Mencari dan melihat data Customer dengan_._\n\n1. id \\[integer\\]: id milik Customer."
+					},
+					"response": []
+				},
+				{
+					"name": "Find Customer By Name Or Email",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "localhost:6000/api/customers/name-or-email/:str",
+							"host": [
+								"localhost"
+							],
+							"port": "6000",
+							"path": [
+								"api",
+								"customers",
+								"name-or-email",
+								":str"
+							],
+							"variable": [
+								{
+									"key": "str",
+									"value": "murray"
+								}
+							]
+						},
+						"description": "Mencari dan melihat data Customer_._\n\n1. str \\[string\\]: nama atau email milik Customer."
+					},
+					"response": []
+				},
+				{
+					"name": "Get My Customer Info",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": "localhost:6000/api/customers/my-info",
+						"description": "Melihat informasi akun milik sendiri."
+					},
+					"response": []
+				},
+				{
+					"name": "Create Customer With Address",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"custData\": {\r\n        \"name\": \"Tyra Ruecker\",\r\n        \"email\": \"tyra81@ethereal.email\",\r\n        \"password\": \"s4hsPTQK921g5gzwxB\"\r\n    },\r\n    \"addrData\": {\r\n        \"country\": \"Indonesia\",\r\n        \"state\": \"DKI Jakarta\",\r\n        \"fullAddress\": \"Jl. Suka Damai 1124\"\r\n    }\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "localhost:6000/api/customers/register",
+						"description": "Membuat akun Customer dan juga menambahkan CustomerAddress."
+					},
+					"response": []
+				},
+				{
+					"name": "Create Customer Without Address",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    // \"custData\": {\r\n    //     \"name\": \"Kieran Aufderhar\",\r\n    //     \"email\": \"kieran.aufderhar73@ethereal.email\",\r\n    //     \"password\": \"d2pW4YbVm2XPBMMHKp\"\r\n    // }\r\n\r\n    \"custData\": {\r\n        \"name\": \"Bruce Deckow\",\r\n        \"email\": \"bruce.deckow37@ethereal.email\",\r\n        \"password\": \"eYvf6A2tGYhmHy4cHC\"\r\n    }\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "localhost:6000/api/customers/register",
+						"description": "Membuat akun Customer tanpa menambahkan CustomerAddress."
+					},
+					"response": []
+				},
+				{
+					"name": "Login Customer",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"email\": \"andikawahyu49@gmail.com\",\r\n    \"password\": \"sayonara123\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "localhost:6000/api/customers/login",
+						"description": "Melakukan login untuk akun dengan role Customer."
+					},
+					"response": []
+				},
+				{
+					"name": "Add My Customer Address",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"country\": \"Indonesia\",\r\n    \"state\": \"Central Lampung\",\r\n    \"fullAddress\": \"Jl. Mt. Haryono 22\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "localhost:6000/api/customers/addresses",
+						"description": "Menambahkan CustomerAddress pada akun milik sendiri."
+					},
+					"response": []
+				},
+				{
+					"name": "Edit My Customer Info",
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"custData\": {\r\n        \"name\": \"Murray Bergstrom\",\r\n        \"email\": \"murray.bergstrom0@ethereal.email\",\r\n        \"role\": 0\r\n    },\r\n    \"addrData\": {\r\n        \"id\": 1002,\r\n        \"country\": \"Indonesia\",\r\n        \"state\": \"Lampung Tengah Baru\",\r\n        \"fullAddress\": \"Jl. Mt. Haryono 100\"\r\n    }\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "localhost:6000/api/customers",
+						"description": "Mengubah informasi akun milik sendiri."
+					},
+					"response": []
+				}
+			],
+			"description": "## Kumpulan Endpoints untuk fitur yang berkaitan dengan Customer.\n\n1. Pengguna dapat melakukan Create akun, Update akun, dan melihat data akunnya sendiri.\n    \n2. API memiliki dua role untuk pengguna yaitu role Customer dan role Admin.\n    \n3. Fitur API untuk akun dengan role Customer dapat diakses juga oleh akun dengan role Admin. Namun, fitur API untuk akun dengan role Admin tidak dapat diakses oleh akun dengan role Customer."
+		},
+		{
+			"name": "Customer Cart",
+			"item": [
+				{
+					"name": "Retrieve Items In My Current Cart",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": "localhost:6000/api/carts",
+						"description": "Mencari dan melihat data pada CustomerCart milik sendiri."
+					},
+					"response": []
+				},
+				{
+					"name": "Add Item To Cart",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"productId\": 1002,\r\n    \"quantity\": 1\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "localhost:6000/api/carts",
+						"description": "Menambahkan Product ke dalam CustomerCart milik sendiri."
+					},
+					"response": []
+				},
+				{
+					"name": "Edit Product Quantity In My Cart",
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"quantity\": 3\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "localhost:6000/api/carts/:cartItemId",
+							"host": [
+								"localhost"
+							],
+							"port": "6000",
+							"path": [
+								"api",
+								"carts",
+								":cartItemId"
+							],
+							"variable": [
+								{
+									"key": "cartItemId",
+									"value": "3011"
+								}
+							]
+						},
+						"description": "Mengubah jumlah kuantitas Product di dalam CustomerCart milik sendiri.\n\n1. cartItemId \\[integer\\]: id Product."
+					},
+					"response": []
+				},
+				{
+					"name": "Remove Cart Item In My Cart",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "localhost:6000/api/carts/:cartItemId",
+							"host": [
+								"localhost"
+							],
+							"port": "6000",
+							"path": [
+								"api",
+								"carts",
+								":cartItemId"
+							],
+							"variable": [
+								{
+									"key": "cartItemId",
+									"value": "3003"
+								}
+							]
+						},
+						"description": "Membuang Product dari CustomerCart milik sendiri.\n\n1. cartItemId \\[integer\\]: id Product."
+					},
+					"response": []
+				}
+			],
+			"description": "## Kumpulan Endpoints untuk fitur yang berkaitan dengan CustomerCart (Keranjang Belanja).\n\n1. Customer dapat melihat isi CustomerCart miliknya.\n    \n2. Customer dapat menambahkan Product ke dalam CustomerCart miliknya.\n    \n3. Customer dapat mengubah jumlah kuantitas Product yang ingin dibelinya.\n    \n4. Customer dapat membuah Product dari CustomerCart miliknya."
+		},
+		{
+			"name": "Product Category",
+			"item": [
+				{
+					"name": "Admin",
+					"item": [
+						{
+							"name": "Create Product Category",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"name\": \"Clothes\",\r\n    \"description\": \"Clothes\",\r\n    \"discountPercentage\": 0\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": "localhost:6000/api/categories/admin",
+								"description": "Membuat ProductCategory baru."
+							},
+							"response": []
+						},
+						{
+							"name": "Edit Product Category",
+							"request": {
+								"method": "PATCH",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"name\": \"Technology\",\r\n    \"description\": \"Technology\",\r\n    \"discountPercentage\": 10\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "localhost:6000/api/categories/admin/:categoryId",
+									"host": [
+										"localhost"
+									],
+									"port": "6000",
+									"path": [
+										"api",
+										"categories",
+										"admin",
+										":categoryId"
+									],
+									"variable": [
+										{
+											"key": "categoryId",
+											"value": "4"
+										}
+									]
+								},
+								"description": "Mengubah data ProductCategory pada ProductCategory.\n\n1. categoryId \\[integer\\]: id Category."
+							},
+							"response": []
+						},
+						{
+							"name": "Delete Product Category",
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "localhost:6000/api/categories/admin/:categoryId",
+									"host": [
+										"localhost"
+									],
+									"port": "6000",
+									"path": [
+										"api",
+										"categories",
+										"admin",
+										":categoryId"
+									],
+									"variable": [
+										{
+											"key": "categoryId",
+											"value": ""
+										}
+									]
+								},
+								"description": "Menghapus data ProductCategory_._\n\n1. categoryId \\[integer\\]: id Category."
+							},
+							"response": []
+						}
+					],
+					"description": "### Kumpulan Endpoints khusus untuk Admin.\n\n1. Membuat ProductCategory baru.\n    \n2. Mengubah data ProductCategory berbasis _categoryId_.\n    \n3. Menghapus data ProductCategory berbasis _categoryId._"
+				},
+				{
+					"name": "Find Product Categories",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "localhost:6000/api/categories?includeProducts=true",
+							"host": [
+								"localhost"
+							],
+							"port": "6000",
+							"path": [
+								"api",
+								"categories"
+							],
+							"query": [
+								{
+									"key": "includeProducts",
+									"value": "true"
+								}
+							]
+						},
+						"description": "Mencari dan melihat seluruh ProductCategory dengan opsi:\n\n1. includeProducts \\[boolean\\]: mengindikasikan data-data Product yang berkaitan dengan ProductCategory akan diikutkan sebagai response."
+					},
+					"response": []
+				},
+				{
+					"name": "Find Product Category By Id",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "localhost:6000/api/categories/:id?includeProducts=true",
+							"host": [
+								"localhost"
+							],
+							"port": "6000",
+							"path": [
+								"api",
+								"categories",
+								":id"
+							],
+							"query": [
+								{
+									"key": "includeProducts",
+									"value": "true"
+								}
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "1"
+								}
+							]
+						},
+						"description": "Mencari dan melihat ProductCategory.\n\n1. id \\[integer\\]: id ProductCategory.\n    \n2. includeProducts \\[boolean\\]: mengindikasikan data-data Product yang berkaitan dengan ProductCategory akan diikutkan sebagai response."
+					},
+					"response": []
+				}
+			],
+			"description": "## Kumpulan Endpoints untuk fitur yang berkaitan dengan ProductCategory."
+		},
+		{
+			"name": "Product",
+			"item": [
+				{
+					"name": "Admin",
+					"item": [
+						{
+							"name": "Create Product",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"name\": \"Good Time\",\r\n    \"price\": 10000,\r\n    \"stock\": 10,\r\n    \"description\": \"Chocolate Biscuit With Chocochips\",\r\n    \"productCategoryId\": 1\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": "localhost:6000/api/products/admin",
+								"description": "Membuat data Product baru."
+							},
+							"response": []
+						},
+						{
+							"name": "Edit Product",
+							"request": {
+								"method": "PATCH",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"name\": \"Good Time Extra\",\r\n    \"price\": 10000,\r\n    \"stock\": 20,\r\n    \"description\": \"Chocolate Biscuit With Chocochips\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "localhost:6000/api/products/admin/:productId",
+									"host": [
+										"localhost"
+									],
+									"port": "6000",
+									"path": [
+										"api",
+										"products",
+										"admin",
+										":productId"
+									],
+									"variable": [
+										{
+											"key": "productId",
+											"value": "1"
+										}
+									]
+								},
+								"description": "Mengubah data Product dengan.\n\n1. productId \\[integer\\]: id Product."
+							},
+							"response": []
+						},
+						{
+							"name": "Delete Product",
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "localhost:6000/api/products/admin/:productId",
+									"host": [
+										"localhost"
+									],
+									"port": "6000",
+									"path": [
+										"api",
+										"products",
+										"admin",
+										":productId"
+									],
+									"variable": [
+										{
+											"key": "productId",
+											"value": "1"
+										}
+									]
+								},
+								"description": "Menghapus data Product.\n\n1. productId \\[integer\\]: id Product."
+							},
+							"response": []
+						}
+					],
+					"description": "### Kumpulan Endpoints khusus untuk Admin.\n\n1. Admin dapat membuat Product baru.\n    \n2. Admin dapat mengubah data Product berbasis _productId_.\n    \n3. Admin dapat menghapus data Product berbasis _productId_."
+				},
+				{
+					"name": "Find Products",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "localhost:6000/api/products?name=laptop&minPrice=0&maxPrice=9999",
+							"host": [
+								"localhost"
+							],
+							"port": "6000",
+							"path": [
+								"api",
+								"products"
+							],
+							"query": [
+								{
+									"key": "name",
+									"value": "laptop"
+								},
+								{
+									"key": "minPrice",
+									"value": "0"
+								},
+								{
+									"key": "maxPrice",
+									"value": "9999"
+								},
+								{
+									"key": "includeProductCategory",
+									"value": "true",
+									"disabled": true
+								}
+							]
+						},
+						"description": "Mencari dan melihat data Products dengan opsi:\n\n1. name \\[string\\]: mengindikasikan Product yang mengandung _name_ pada nama Products.\n    \n2. minPrice \\[number\\]: mengindikasikan harga minimal Product.\n    \n3. maxPrice \\[number\\]: mengindikasikan harga maksimal Product.\n    \n4. includeProductCategory \\[boolean\\]: mengindikasikan bahwa data ProductCategory juga ikut dikembalikan sebagai response."
+					},
+					"response": []
+				},
+				{
+					"name": "Find Product By Id",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "localhost:6000/api/products/:id?includeProductCategory=true",
+							"host": [
+								"localhost"
+							],
+							"port": "6000",
+							"path": [
+								"api",
+								"products",
+								":id"
+							],
+							"query": [
+								{
+									"key": "includeProductCategory",
+									"value": "true"
+								}
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "1003"
+								}
+							]
+						},
+						"description": "Mencari dan melihat Product.\n\n1. id \\[integer\\]: id Product.\n    \n2. includeProductCategory \\[boolean\\]: mengindikasikan data ProductCategory juga ikut dikembalikan sebagai response."
+					},
+					"response": []
+				}
+			],
+			"description": "## Kumpulan Endpoints untuk fitur yang berkaitan dengan Product.\n\n1. Customer dapat mencari dan melihat seluruh data Products.\n    \n2. Customer dapat mencari melihat data Product berbasis _Id_."
+		},
+		{
+			"name": "Order",
+			"item": [
+				{
+					"name": "Admin",
+					"item": [
+						{
+							"name": "Find Orders",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": "localhost:6000/api/orders/admin",
+								"description": "Mencari dan melihat seluruh data Order."
+							},
+							"response": []
+						},
+						{
+							"name": "Find Order By Id",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "localhost:6000/api/orders/admin/:id",
+									"host": [
+										"localhost"
+									],
+									"port": "6000",
+									"path": [
+										"api",
+										"orders",
+										"admin",
+										":id"
+									],
+									"variable": [
+										{
+											"key": "id",
+											"value": "1"
+										}
+									]
+								},
+								"description": "Mencari dan melihat data Order.\n\n1. id \\[integer\\]: id Order."
+							},
+							"response": []
+						},
+						{
+							"name": "Generate Report",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"var moment = require('moment');\r",
+											"\r",
+											"// A Week\r",
+											"pm.environment.set('startDate', moment().format((\"YYYY-MM-DD\")));\r",
+											"pm.environment.set('endDate', moment().add(7, \"days\").format((\"YYYY-MM-DD\")));\r",
+											"\r",
+											"\r",
+											"// A Month\r",
+											"//pm.environment.set('startDate', moment().startOf('month').format('YYYY-MM-DD'));\r",
+											"//pm.environment.set('endDate', moment().endOf('month').format('YYYY-MM-DD'));\r",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "localhost:6000/api/orders/admin/report/generate?startDate={{startDate}}&endDate={{endDate}}",
+									"host": [
+										"localhost"
+									],
+									"port": "6000",
+									"path": [
+										"api",
+										"orders",
+										"admin",
+										"report",
+										"generate"
+									],
+									"query": [
+										{
+											"key": "startDate",
+											"value": "{{startDate}}"
+										},
+										{
+											"key": "endDate",
+											"value": "{{endDate}}"
+										}
+									]
+								},
+								"description": "Membuat Order report, menjadikannya sebagai PDF file dan mengirimkannya ke Admin dengan opsi:\n\n1. startDate \\[datetime\\]: Waktu awal.\n    \n2. endDate \\[datetime\\]: Waktu akhir"
+							},
+							"response": []
+						},
+						{
+							"name": "Update Order Status",
+							"request": {
+								"method": "PATCH",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"orderStatus\": \"ship\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "localhost:6000/api/orders/admin/:orderId",
+									"host": [
+										"localhost"
+									],
+									"port": "6000",
+									"path": [
+										"api",
+										"orders",
+										"admin",
+										":orderId"
+									],
+									"variable": [
+										{
+											"key": "orderId",
+											"value": "2010"
+										}
+									]
+								},
+								"description": "Mengubah status Order.\n\n1. orderId \\[integer\\]: id Order."
+							},
+							"response": []
+						}
+					],
+					"description": "### Kumpulan Endpoints khusus untuk Admin.\n\n1. Admin dapat mencari dan melihat seluruh data Order milik Customer.\n    \n2. Admin dapat mencari dan melihat data Order milik Customer berbasis _id_.\n    \n3. Admin dapat membuat Order report berdasarkan rentang waktu tertentu.\n    \n4. Admin dapat mengubah status Order milik Customer."
+				},
+				{
+					"name": "Find My Order Histories",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "localhost:6000/api/orders",
+							"host": [
+								"localhost"
+							],
+							"port": "6000",
+							"path": [
+								"api",
+								"orders"
+							],
+							"query": [
+								{
+									"key": "orderStatus",
+									"value": "waiting_payment",
+									"disabled": true
+								}
+							]
+						},
+						"description": "Mencari dan melihat seluruh OrderHistories milik sendiri dengan opsi:\n\n1. orderStatus \\[all/waiting_payment/expired/process/ship/complete\\]: mengindikasikan status Order yang ingin dicari dan dilihat."
+					},
+					"response": []
+				},
+				{
+					"name": "Find My Order By Id",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "localhost:6000/api/orders/:id",
+							"host": [
+								"localhost"
+							],
+							"port": "6000",
+							"path": [
+								"api",
+								"orders",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "1"
+								}
+							]
+						},
+						"description": "Mencari dan melihat data Order milik sendiri.\n\n1. id \\[integer\\]: id Order."
+					},
+					"response": []
+				},
+				{
+					"name": "Create Order",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": "localhost:6000/api/orders",
+						"description": "Membuat Order berdasarkan CustomerCart."
+					},
+					"response": []
+				},
+				{
+					"name": "Paying Order",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"paymentMethod\": \"BANK\"\r\n    //\"paymentMethod\": \"E_WALLET\"\r\n    //\"paymentMethod\": \"CREDIT_CARD\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "localhost:6000/api/orders/paying/:orderId",
+							"host": [
+								"localhost"
+							],
+							"port": "6000",
+							"path": [
+								"api",
+								"orders",
+								"paying",
+								":orderId"
+							],
+							"variable": [
+								{
+									"key": "orderId",
+									"value": "2010"
+								}
+							]
+						},
+						"description": "Membayar Order yang telah dibuat.\n\n1. orderId \\[integer\\]: id Order."
+					},
+					"response": []
+				}
+			],
+			"description": "## Kumpulan Endpoints untuk fitur yang berkaitan dengan Order.\n\n1. Customer dapat mencari dan melihat seluruh OrderHistories miliknya.\n    \n2. Customer dapat mencari dan melihat OrderHistory berbasis _id_ miliknya.\n    \n3. Customer dapat membuat Order atau melakukan Checkout dari CustomerCart miliknya.\n    \n4. Customer dapat membayar dari Order yang telah dibuat."
+		}
+	]
+}
