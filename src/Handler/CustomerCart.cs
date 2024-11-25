@@ -101,6 +101,12 @@ public static class CustomerCartHandler
                 return new NotFoundError("Cart Item did not found").ToResult();
             }
 
+            var result = await customerCartSvc.RemoveItemFromCart(cts.Token, cc);
+            if (!result)
+            {
+                return new BadRequestError("Removing item in your cart is failed").ToResult();
+            }
+
             var myCart = customerCartSvc
                 .FindItemsInMyCart(cts.Token,
                                    current_user!.id)

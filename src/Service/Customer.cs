@@ -95,8 +95,8 @@ public class CustomerService : ICustomerService
             }
 
             return await query.FirstOrDefaultAsync(
-                    c => EF.Functions.Collate(c.Name, "SQL_Latin1_General_CP1_CS_AS").Equals(str) ||
-                    EF.Functions.Collate(c.Email, "SQL_Latin1_General_CP1_CS_AS").Equals(str),
+                    c => EF.Functions.Collate(c.Name, "SQL_Latin1_General_CP1_CS_AS").StartsWith(str) ||
+                    EF.Functions.Collate(c.Email, "SQL_Latin1_General_CP1_CS_AS").StartsWith(str),
                     ct);
         }
         catch (System.Exception err)
@@ -149,7 +149,6 @@ public class CustomerService : ICustomerService
                 Role = UserRoles.CUSTOMER,
                 CreatedAt = DateTime.Now,
             };
-            this.ctx.Customers.Add(c);
 
             if (addrData is not null)
             {
@@ -161,13 +160,11 @@ public class CustomerService : ICustomerService
                     FullAddress = addrData.fullAddress,
                 };
 
-                this.ctx.CustomerAddresses.Add(addr);
+                c.CustomerAddresses.Add(addr);
             }
 
+            await this.ctx.Customers.AddAsync(c, ct);
             await this.ctx.SaveChangesAsync(ct);
-
-            this.emailBackgroundSvc.QueueEmail(new sendEmailData(c.Email, "Email Verification", $"Verification your email {c.Email}"));
-
             await tx.CommitAsync(ct);
             return c;
         }
@@ -194,15 +191,27 @@ public class CustomerService : ICustomerService
             c.Email = custData.email;
             c.Role = custData.role;
 
-            this.ctx.Customers.Update(c);
-
             if (ca is not null)
             {
                 ca.CustomerId = c.Id;
-                this.ctx.CustomerAddresses.Update(ca);
-                await this.ctx.SaveChangesAsync(ct);
+
+                var existingAddress = c.CustomerAddresses.FirstOrDefault(ca => ca.Id.Equals(ca.Id));
+                if (existingAddress is not null)
+                {
+                    existingAddress.Country = ca.Country;
+                    existingAddress.State = ca.State;
+                    existingAddress.FullAddress = ca.FullAddress;
+                    this.ctx.CustomerAddresses.Update(existingAddress);
+                }
+                else
+                {
+                    await this.ctx.CustomerAddresses.AddAsync(ca, ct);
+                    c.CustomerAddresses.Add(ca);
+                }
             }
 
+            this.ctx.Customers.Update(c);
+            await this.ctx.SaveChangesAsync(ct);
             await tx.CommitAsync(ct);
             return c;
         }

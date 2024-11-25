@@ -47,7 +47,7 @@ public record CreateCustomerAndCustomerAddressDTO(CreateCustomerDTO custData, Up
 public record EditCustomerDTO(string name, string email, UserRoles role);
 public record EditCustomerAndCustomerAddressDTO(EditCustomerDTO custData, CustomerAddress? addrData);
 public record CustomerCartDTO(int productId, int quantity);
-public record CustomerCartOverviewDTO(int id, ProductDTO product);
+public record CustomerCartOverviewDTO(int id, ProductDTO product, int quantity);
 public record EditCustomerCartDTO(int quantity);
 
 [Mapper()]
@@ -109,8 +109,6 @@ public class EditCustomerValidator : AbstractValidator<EditCustomerDTO>
             .NotEmpty().WithMessage("Name cannot be empty");
 
         RuleFor(x => x.role)
-            .NotNull().WithMessage("Role cannot be null")
-            .NotEmpty().WithMessage("Role cannot be empty")
             .IsInEnum().WithMessage("Role is invalid");
     }
 }

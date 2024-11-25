@@ -105,6 +105,7 @@ builder.Services.AddScoped<IValidator<EditCustomerCartDTO>, EditCustomerCartVali
 builder.Services.AddScoped<IValidator<CustomerCartDTO>, CustomerCartValidator>();
 builder.Services.AddScoped<IValidator<CreateProductDTO>, CreateProductValidator>();
 builder.Services.AddScoped<IValidator<EditProductDTO>, EditProductValidator>();
+builder.Services.AddScoped<IValidator<CustomerAddress>, CustomerAddressValidator>();
 
 builder.Services.AddScoped<JwtService>();
 builder.Services.AddScoped<PasswordService>();

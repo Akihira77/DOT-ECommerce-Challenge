@@ -34,7 +34,7 @@ public static class CustomerRouter
     {
         var requireAdminGroup = r.MapGroup("/admin").
             AddEndpointFilterFactory(AuthenticationValidationMiddleware.RequireAdmin);
-        requireAdminGroup.MapPatch("/upgrade-customer/{customerId}", CustomerHandler.UpgradeCustomerToAdmin);
+        requireAdminGroup.MapPatch("/change-roles/{customerId}", CustomerHandler.UpgradeCustomerToAdmin);
         requireAdminGroup.MapDelete("/{customerId}", CustomerHandler.DeleteCustomer);
     }
 }

@@ -259,20 +259,22 @@ public static class CustomerHandler
     public static async Task<IResult> UpgradeCustomerToAdmin(
         HttpContext httpCtx,
         [FromServices] ICustomerService customerSvc,
-        [FromRoute] int customerId)
+        [FromRoute] int customerId,
+        [FromQuery] string role)
     {
         try
         {
             var cts = CancellationTokenSource.CreateLinkedTokenSource(httpCtx.RequestAborted);
             cts.CancelAfter(TimeSpan.FromSeconds(2));
 
-            var c = await customerSvc.FindCustomerById(cts.Token, customerId, true);
+            var c = await customerSvc.FindCustomerById(cts.Token, customerId, false);
             if (c is null)
             {
                 return new NotFoundError("Customer data is not found").ToResult();
             }
 
-            c = await customerSvc.EditCustomer(cts.Token, new EditCustomerDTO(c.Name, c.Email, UserRoles.ADMIN), c, null);
+            var userRole = role.ToEnumOrThrow<UserRoles>();
+            c = await customerSvc.EditCustomer(cts.Token, new EditCustomerDTO(c.Name, c.Email, userRole), c, null);
             return Results.Ok(c);
         }
         catch (System.Exception err)
