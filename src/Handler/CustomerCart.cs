@@ -34,7 +34,7 @@ public static class CustomerCartHandler
 
     public static async Task<IResult> AddItemToCart(
         HttpContext httpCtx,
-        IValidator<CustomerCartDTO> validator,
+        [FromServices] IValidator<CustomerCartDTO> validator,
         [FromServices] ICustomerCartService customerCartSvc,
         [FromServices] IProductService productService,
         [FromBody] CustomerCartDTO body)
@@ -118,7 +118,7 @@ public static class CustomerCartHandler
 
     public static async Task<IResult> EditItemQuantity(
         HttpContext httpCtx,
-        IValidator<EditCustomerCartDTO> validator,
+        [FromServices] IValidator<EditCustomerCartDTO> validator,
         [FromServices] ICustomerCartService customerCartSvc,
         [FromRoute] int cartItemId,
         [FromBody] EditCustomerCartDTO body)

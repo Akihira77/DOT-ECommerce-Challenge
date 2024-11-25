@@ -105,8 +105,8 @@ public static class CustomerHandler
 
     public static async Task<IResult> CreateCustomer(
         HttpContext httpCtx,
-        IValidator<CreateCustomerDTO> customerValidator,
-        IValidator<UpsertCustomerAddressDTO> customerAddressValidator,
+        [FromServices] IValidator<CreateCustomerDTO> customerValidator,
+        [FromServices] IValidator<UpsertCustomerAddressDTO> customerAddressValidator,
         [FromServices] ICustomerService customerSvc,
         [FromBody] CreateCustomerAndCustomerAddressDTO body)
     {
@@ -143,7 +143,7 @@ public static class CustomerHandler
 
     public static async Task<IResult> Login(
         HttpContext httpCtx,
-        IValidator<LoginDTO> validator,
+        [FromServices] IValidator<LoginDTO> validator,
         [FromServices] ICustomerService customerSvc,
         [FromServices] JwtService jwtSvc,
         [FromBody] LoginDTO body)
@@ -185,8 +185,8 @@ public static class CustomerHandler
 
     public static async Task<IResult> EditCustomer(
         HttpContext httpCtx,
-        IValidator<EditCustomerDTO> customerValidator,
-        IValidator<CustomerAddress> customerAddressValidator,
+        [FromServices] IValidator<EditCustomerDTO> customerValidator,
+        [FromServices] IValidator<CustomerAddress> customerAddressValidator,
         [FromServices] ICustomerService customerSvc,
         [FromBody] EditCustomerAndCustomerAddressDTO body)
     {
@@ -225,7 +225,7 @@ public static class CustomerHandler
 
     public static async Task<IResult> AddCustomerAddress(
         HttpContext httpCtx,
-        IValidator<UpsertCustomerAddressDTO> validator,
+        [FromServices] IValidator<UpsertCustomerAddressDTO> validator,
         [FromServices] ICustomerService customerSvc,
         [FromBody] UpsertCustomerAddressDTO body)
     {

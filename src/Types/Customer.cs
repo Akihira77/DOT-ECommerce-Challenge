@@ -71,7 +71,7 @@ public class LoginValidator : AbstractValidator<LoginDTO>
         RuleFor(x => x.password)
             .NotNull().WithMessage("Password cannot be null")
             .NotEmpty().WithMessage("Password cannot be empty")
-            .Length(min: 8, max: 16).WithMessage("Password length must be between 8 and 16 characters");
+            .MinimumLength(8).WithMessage("Password minimum length is 8");
     }
 }
 
@@ -87,7 +87,7 @@ public class CreateCustomerValidator : AbstractValidator<CreateCustomerDTO>
         RuleFor(x => x.password)
             .NotNull().WithMessage("Password cannot be null")
             .NotEmpty().WithMessage("Password cannot be empty")
-            .Length(min: 8, max: 16).WithMessage("Password length must be between 8 and 16 characters");
+            .MinimumLength(8).WithMessage("Password minimum length is 8");
 
         RuleFor(x => x.name)
             .NotNull().WithMessage("Name cannot be null")

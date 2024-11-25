@@ -56,7 +56,7 @@ public static class ProductCategoryHandler
 
     public static async Task<IResult> CreateProductCategory(
         HttpContext httpCtx,
-        IValidator<UpsertProductCategoryDTO> validator,
+        [FromServices] IValidator<UpsertProductCategoryDTO> validator,
         [FromServices] IProductCategoryService productCategorySvc,
         [FromBody] UpsertProductCategoryDTO body)
     {
@@ -84,7 +84,7 @@ public static class ProductCategoryHandler
 
     public static async Task<IResult> EditProductCategory(
         HttpContext httpCtx,
-        IValidator<UpsertProductCategoryDTO> validator,
+        [FromServices] IValidator<UpsertProductCategoryDTO> validator,
         [FromServices] IProductCategoryService productCategorySvc,
         [FromRoute] int categoryId,
         [FromBody] UpsertProductCategoryDTO body)

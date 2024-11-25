@@ -9,7 +9,7 @@ public static class ProductHandler
 {
     public static async Task<IResult> FindProducts(
         HttpContext httpCtx,
-        IValidator<FindProductsQueryDTO> validator,
+        [FromServices] IValidator<FindProductsQueryDTO> validator,
         [FromServices] IProductService productSvc,
         [FromQuery] string name = "",
         [FromQuery] decimal minPrice = 0,
@@ -67,7 +67,7 @@ public static class ProductHandler
 
     public static async Task<IResult> CreateProduct(
         HttpContext httpCtx,
-        IValidator<CreateProductDTO> validator,
+        [FromServices] IValidator<CreateProductDTO> validator,
         [FromServices] IProductService productSvc,
         [FromServices] IProductCategoryService productCategorySvc,
         [FromBody] CreateProductDTO body)
@@ -106,7 +106,7 @@ public static class ProductHandler
 
     public static async Task<IResult> EditProduct(
         HttpContext httpCtx,
-        IValidator<EditProductDTO> validator,
+        [FromServices] IValidator<EditProductDTO> validator,
         [FromServices] IProductService productSvc,
         [FromRoute] int productId,
         [FromBody] EditProductDTO body)
