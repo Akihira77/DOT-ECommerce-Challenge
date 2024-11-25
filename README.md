@@ -73,12 +73,12 @@ Secara ringkas sebagai berikut:
 # Feature
 Penjabaran fitur pada API dibagi menjadi basis Endpoint API dan basis non-Endpoint API.
 ## Feature Based API Endpoint
-Fitur pada seksi ini dapat langsung diakses pada Postman Collection yang sudah disediakan pada Repository.
-	-	Import file Postman_Collection.json
-	-	Klik kanan pada Postman Collection tersebut dan pilih `View Documentation`
+Fitur pada seksi ini dapat langsung diakses pada Postman Collection yang sudah disediakan pada Repository.  
+	-	Import file Postman_Collection.json  
+	-	Klik kanan pada Postman Collection tersebut dan pilih `View Documentation`  
 <a href="https://ibb.co.com/T4xzxyY"><img src="https://i.ibb.co.com/3p9t9K4/image.png" alt="image" border="0"></a>  
-	- Kemudian akan tampil dokumentasi terkait seluruh API Endpoints
-<a href="https://ibb.co.com/wyQX8Vb"><img src="https://i.ibb.co.com/CB9Z4gX/image.png" alt="image" border="0"></a>
+	- Kemudian akan tampil dokumentasi terkait seluruh API Endpoints  
+<a href="https://ibb.co.com/wyQX8Vb"><img src="https://i.ibb.co.com/CB9Z4gX/image.png" alt="image" border="0"></a>  
 ## Feature Based Non-Endpoint
 Fitur pada seksi ini berupa 2 Background Service yaitu:
 - Async Queue Send Email (ada BUG yaitu prosesnya sukses tapi email yang dikirimkan pesan ga nerima apa-apa)
