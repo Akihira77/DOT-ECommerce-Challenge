@@ -90,4 +90,3 @@ Fitur pada seksi ini berupa 2 Background Service yaitu:
 - Clone repository ini kemudian buat file`appsettings.[Environment].json`dan lengkapi datanya berdasarkan `appsettings.Example.json` yang telah disediakan. 
 - Pada terminal jalankan `dotnet restore` untuk mengunduh packages yang dibutuhkan. Lalu jalankan `dotnet run` untuk menjalankan API.
 - Untuk mencoba API import Postman Collection yang telah disediakan pada aplikasi Postman/Insomnia/etc. Lalu baca dokumentasi yang disediakan.
-

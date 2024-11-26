@@ -31,7 +31,7 @@ public class ProductCategoryService : IProductCategoryService
                 Name = data.name,
                 Description = data.description,
                 ProductCount = 0,
-                DiscountPercentage = 0,
+                DiscountPercentage = data.discountPercentage,
             };
 
             this.ctx.ProductCategories.Add(pc);

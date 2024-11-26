@@ -273,8 +273,8 @@ public class OrderService : IOrderService
             var orderTransactions = await this.ctx
                 .OrderTransactions
                 .Include(ot => ot.Order)
-                .Where(ot => ot.Order!.CreatedAt >= startDate
-                        && ot.Order!.CreatedAt < endDate)
+                .Where(ot => ot.Order!.CreatedAt.CompareTo(startDate) >= 0
+                        && ot.Order!.CreatedAt.CompareTo(endDate.AddDays(1)) <= 0)
                 .AsNoTracking()
                 .ToListAsync();
 
@@ -293,10 +293,10 @@ public class OrderService : IOrderService
             document.Add(new Paragraph($"Generated On: {DateTime.UtcNow}").SetFontSize(12));
 
             var table = new Table(6);
-            table.AddHeaderCell("ID");
+            table.AddHeaderCell("Transaction ID");
             table.AddHeaderCell("Customer ID");
             table.AddHeaderCell("Total Amount");
-            table.AddHeaderCell("Date");
+            table.AddHeaderCell("Transaction Date");
             table.AddHeaderCell("Payment Method");
             table.AddHeaderCell("Payment Status");
 

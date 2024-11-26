@@ -256,7 +256,7 @@ public static class CustomerHandler
         }
     }
 
-    public static async Task<IResult> UpgradeCustomerToAdmin(
+    public static async Task<IResult> ChangeCustomerRoles(
         HttpContext httpCtx,
         [FromServices] ICustomerService customerSvc,
         [FromRoute] int customerId,
