@@ -273,8 +273,8 @@ public class OrderService : IOrderService
             var orderTransactions = await this.ctx
                 .OrderTransactions
                 .Include(ot => ot.Order)
-                .Where(ot => ot.Order!.CreatedAt >= startDate
-                        && ot.Order!.CreatedAt < endDate)
+                .Where(ot => ot.Order!.CreatedAt.CompareTo(startDate) >= 0
+                        && ot.Order!.CreatedAt.CompareTo(endDate.AddDays(1)) <= 0)
                 .AsNoTracking()
                 .ToListAsync();
 
