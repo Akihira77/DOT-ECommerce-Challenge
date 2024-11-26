@@ -210,12 +210,12 @@ public static class OrderHandler
     public static async Task<IResult> GenerateReport(
         HttpContext httpCtx,
         [FromServices] IOrderService orderSvc,
-        [FromQuery] DateTime endDate,
-        [FromQuery] DateTime? startDate = null)
+        [FromQuery] DateTime startDate,
+        [FromQuery] DateTime? endDate = null)
     {
         try
         {
-            if (startDate is not null && startDate.Value.CompareTo(endDate) > 0)
+            if (endDate is not null && startDate.CompareTo(endDate) > 0)
             {
                 return new BadRequestError("Start Date is greater than End Date").ToResult();
             }
@@ -224,7 +224,7 @@ public static class OrderHandler
             cts.CancelAfter(TimeSpan.FromSeconds(3));
 
             var current_user = httpCtx.Items["current_user"] as CustomerOverviewDTO;
-            await orderSvc.GenerateReport(cts.Token, current_user!, startDate ?? DateTime.Now, endDate);
+            await orderSvc.GenerateReport(cts.Token, current_user!, startDate, endDate ?? DateTime.Now);
 
             return Results.NoContent();
         }
