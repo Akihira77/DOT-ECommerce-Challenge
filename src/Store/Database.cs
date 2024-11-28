@@ -72,6 +72,10 @@ public class ApplicationDbContext : DbContext
             OnDelete(DeleteBehavior.SetNull);
 
         modelBuilder.Entity<Order>().
+            Property(o => o.Version).
+            IsConcurrencyToken();
+
+        modelBuilder.Entity<Order>().
             HasOne<OrderTransaction>(o => o.OrderTransaction).
             WithOne(ot => ot.Order).
             HasForeignKey<OrderTransaction>(ot => ot.OrderId).

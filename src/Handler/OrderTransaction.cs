@@ -191,13 +191,7 @@ public static class OrderHandler
             var cts = CancellationTokenSource.CreateLinkedTokenSource(httpCtx.RequestAborted);
             cts.CancelAfter(TimeSpan.FromSeconds(2));
 
-            var o = await orderSvc.FindOrderById(cts.Token, orderId, false);
-            if (o is null)
-            {
-                return new NotFoundError($"Order {orderId} did not found").ToResult();
-            }
-
-            var updatedOrder = await orderSvc.UpdateOrderStatus(cts.Token, o, body);
+            var updatedOrder = await orderSvc.UpdateOrderStatus(cts.Token, orderId, body);
             return Results.Ok(updatedOrder);
         }
         catch (System.Exception err)

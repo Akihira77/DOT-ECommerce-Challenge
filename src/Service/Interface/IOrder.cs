@@ -19,7 +19,7 @@ public interface IOrderService
         bool track);
     Task<Order> UpdateOrderStatus(
         CancellationToken ct,
-        Order o,
+        int orderId,
         UpdateOrderDTO data);
     Task GenerateReport(
         CancellationToken ct,
