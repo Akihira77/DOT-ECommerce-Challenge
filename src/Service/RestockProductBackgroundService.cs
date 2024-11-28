@@ -70,28 +70,23 @@ public class RestockProductBackgroundService : BackgroundService
                         WHERE Id IN ({string.Join(",", expiredOrderIds)})
                     ", ct);
 
-                var productIds = expiredOrders
-                    .SelectMany(o => o.OrderItems)
-                        .Select(oi => oi.ProductId)
-                    .Distinct()
-                    .ToArray();
+                var productQuantityMap = expiredOrders.
+                    SelectMany(o => o.OrderItems).
+                    GroupBy(oi => oi.ProductId).
+                    ToDictionary(g => g.Key, g => g.Sum(oi => oi.Quantity));
+                var productIds = productQuantityMap.Keys.ToArray();
                 var products = await dbCtx
                     .Products
-                    .FromSqlInterpolated($@"
-                        SELECT * FROM Products WITH (UPDLOCK, ROWLOCK)
-                        WHERE Id IN ({string.Join(",", productIds)})
-                    ")
+                    .FromSqlRaw($@"
+                            SELECT * FROM Products WITH (UPDLOCK, ROWLOCK)
+                            WHERE Id IN ({string.Join(",", productIds)})
+                        ")
                     .ToListAsync();
-                var productLookup = products
-                    .ToDictionary(p => p.Id);
-                var orderItems = expiredOrders
-                    .SelectMany(o => o.OrderItems)
-                    .ToList();
-                foreach (var orderItem in orderItems)
+                foreach (var product in products)
                 {
-                    if (productLookup.TryGetValue(orderItem.ProductId, out var product))
+                    if (productQuantityMap.TryGetValue(product.Id, out var totalQuantity))
                     {
-                        product.Stock += orderItem.Quantity;
+                        product.Stock += totalQuantity;
                     }
                 }
 

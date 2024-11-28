@@ -225,11 +225,33 @@ public class OrderService : IOrderService
 
     public async Task<Order> UpdateOrderStatus(
         CancellationToken ct,
-        Order o,
+        int orderId,
         UpdateOrderDTO data)
     {
+
+        using var tx = await this.ctx.Database.BeginTransactionAsync(System.Data.IsolationLevel.ReadCommitted, ct);
+        //this.ctx.Database.SetCommandTimeout(TimeSpan.FromSeconds(1));
+        this.logger.LogInformation($"{nameof(UpdateOrderStatus)}: Transaction started");
         try
         {
+            ct.ThrowIfCancellationRequested();
+
+            var o = this.
+                ctx.
+                Orders.
+                FromSqlInterpolated($@"
+                    SELECT * FROM Orders WITH (UPDLOCK, ROWLOCK)
+                    WHERE Id = {orderId}
+                ").
+                Include(o => o.Customer).
+                AsEnumerable().
+                FirstOrDefault();
+
+            if (o is null)
+            {
+                throw new InvalidOperationException("Order is not found");
+            }
+
             var orderStatus = data.orderStatus.ToEnumOrThrow<OrderStatus>();
             var updatedOrder = this
                 .ctx
@@ -241,7 +263,7 @@ public class OrderService : IOrderService
                         WHERE Id = {o.Id} AND Version = {o.Version}"
                 )
                 .AsEnumerable()
-                .SingleOrDefault();
+                .FirstOrDefault();
 
             if (updatedOrder is null)
             {
@@ -249,11 +271,17 @@ public class OrderService : IOrderService
             }
 
             this.emailBackgroundService.QueueEmail(new sendEmailData(o.Customer!.Email, "Order Status Change", $"Your has change the status. Please check http://localhost:8000/orders"));
-            return updatedOrder;
+
+            await this.ctx.SaveChangesAsync(ct);
+            await tx.CommitAsync(ct);
+            this.logger.LogInformation($"{nameof(UpdateOrderStatus)}: Transaction committed");
+            return o;
         }
         catch (System.Exception err)
         {
-            this.logger.LogError($"Error in {err.Source} - {err.Message}");
+            await tx.RollbackAsync(ct);
+            this.logger.LogInformation($"{nameof(UpdateOrderStatus)}: Transaction rollback");
+            this.logger.LogError($"[{err.GetType().Name}] Error in {err.Source} - {err.Message}");
             throw;
         }
     }
