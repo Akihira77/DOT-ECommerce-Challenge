@@ -7,8 +7,8 @@ public static class Router
     public static void MainRouter(this WebApplication app)
     {
         var api = app
-            .MapGroup(BASE_PATH);
-        // .RequireRateLimiting("fixed");
+            .MapGroup(BASE_PATH)
+            .RequireRateLimiting("fixed");
 
         api
             .MapGroup("/customers")

@@ -49,8 +49,8 @@ public class RestockProductBackgroundService : BackgroundService
         // var scope = this.serviceProvider.CreateScope();
         // using var dbCtx = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
         // using var tx = dbCtx.Database.BeginTransaction(System.Data.IsolationLevel.RepeatableRead);
-        using var dbCtx = this.dbCtxFactory.CreateDbContext();
-        using var tx = dbCtx.Database.BeginTransaction(System.Data.IsolationLevel.RepeatableRead);
+        using var dbCtx = await this.dbCtxFactory.CreateDbContextAsync(ct);
+        using var tx = await dbCtx.Database.BeginTransactionAsync(System.Data.IsolationLevel.RepeatableRead, ct);
         try
         {
             var expiredOrders = await dbCtx
