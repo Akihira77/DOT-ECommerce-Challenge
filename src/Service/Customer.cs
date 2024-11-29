@@ -164,8 +164,8 @@ public class CustomerService : ICustomerService
             }
 
             await this.ctx.Customers.AddAsync(c, ct);
-            await this.ctx.SaveChangesAsync(ct);
             await tx.CommitAsync(ct);
+            await this.ctx.SaveChangesAsync(ct);
 
             this.emailBackgroundSvc.QueueEmail(new sendEmailData(c.Email, "Account Registered", $"Account with email {c.Email} has been registered", null));
             return c;
@@ -213,8 +213,8 @@ public class CustomerService : ICustomerService
             }
 
             this.ctx.Customers.Update(c);
-            await this.ctx.SaveChangesAsync(ct);
             await tx.CommitAsync(ct);
+            await this.ctx.SaveChangesAsync(ct);
             return c;
         }
         catch (System.Exception err)

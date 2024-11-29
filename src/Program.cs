@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Text.Json.Serialization;
 using System.Threading.RateLimiting;
 using ECommerce.Middleware;
@@ -21,7 +22,7 @@ Log.Logger = new LoggerConfiguration()
     .WriteTo.Console()
     .CreateLogger();
 
-Log.Information("Starting web application");
+Log.Information($"Starting web application with PID: {Process.GetCurrentProcess().Id}");
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Host.UseSerilog((context, cfg) =>
@@ -42,7 +43,15 @@ builder.Services.AddHttpLogging(log =>
     log.CombineLogs = true;
 });
 
-builder.Services.AddDbContext<ApplicationDbContext>(o =>
+// builder.Services.AddDbContext<ApplicationDbContext>(o =>
+// {
+//     o.UseSqlServer(builder.Configuration.GetConnectionString("SQLServer"));
+// });
+builder.Services.AddDbContextPool<ApplicationDbContext>(o =>
+{
+    o.UseSqlServer(builder.Configuration.GetConnectionString("SQLServer"));
+});
+builder.Services.AddPooledDbContextFactory<ApplicationDbContext>(o =>
 {
     o.UseSqlServer(builder.Configuration.GetConnectionString("SQLServer"));
 });
