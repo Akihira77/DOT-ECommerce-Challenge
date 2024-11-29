@@ -7,14 +7,17 @@ namespace ECommerce.Service;
 public class RestockProductBackgroundService : BackgroundService
 {
     private readonly IServiceProvider serviceProvider;
+    private readonly IDbContextFactory<ApplicationDbContext> dbCtxFactory;
     private readonly ILogger<RestockProductBackgroundService> logger;
     private readonly TimeSpan interval = TimeSpan.FromHours(1);
 
     public RestockProductBackgroundService(
         ILogger<RestockProductBackgroundService> logger,
+        IDbContextFactory<ApplicationDbContext> dbCtxFactory,
         IServiceProvider serviceProvider)
     {
         this.logger = logger;
+        this.dbCtxFactory = dbCtxFactory;
         this.serviceProvider = serviceProvider;
     }
 
@@ -43,15 +46,18 @@ public class RestockProductBackgroundService : BackgroundService
     {
         ct.ThrowIfCancellationRequested();
 
-        using var scope = this.serviceProvider.CreateScope();
-        var dbCtx = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-        using var tx = dbCtx.Database.BeginTransaction(System.Data.IsolationLevel.RepeatableRead);
+        // var scope = this.serviceProvider.CreateScope();
+        // using var dbCtx = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        // using var tx = dbCtx.Database.BeginTransaction(System.Data.IsolationLevel.RepeatableRead);
+        using var dbCtx = await this.dbCtxFactory.CreateDbContextAsync(ct);
+        using var tx = await dbCtx.Database.BeginTransactionAsync(System.Data.IsolationLevel.RepeatableRead, ct);
         try
         {
             var expiredOrders = await dbCtx
                 .Orders
-                .Include(o => o!.OrderItems)
-                .Where(o => DateTime.Now.CompareTo(o.Deadline) > 0
+                .Select(o => new { o.Id, o.Deadline, o.OrderStatus, o.OrderItems })
+                // .Include(o => o!.OrderItems)
+                .Where(o => DateTime.Now >= o.Deadline
                             && o.OrderStatus.Equals(OrderStatus.WAITING_PAYMENT))
                 .ToListAsync();
 
@@ -90,8 +96,8 @@ public class RestockProductBackgroundService : BackgroundService
                     }
                 }
 
-                await dbCtx.SaveChangesAsync();
                 await tx.CommitAsync(ct);
+                await dbCtx.SaveChangesAsync(ct);
             }
         }
         catch (System.Exception err)

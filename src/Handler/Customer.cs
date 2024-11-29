@@ -130,6 +130,12 @@ public static class CustomerHandler
                 }
             }
 
+            var isUserExisted = await customerSvc.FindCustomerByNameOrEmail(cts.Token, body.custData.email, false);
+            if (isUserExisted is not null)
+            {
+                return new BadRequestError("User already registered").ToResult();
+            }
+
             var c = await customerSvc.CreateCustomer(cts.Token, body.custData, body.addrData);
 
             return Results.Created(httpCtx.Request.Path, c);

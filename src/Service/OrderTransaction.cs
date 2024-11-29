@@ -37,8 +37,8 @@ public class OrderTransactionService : IOrderTransactionService
             await this.ctx.OrderTransactions.AddAsync(ot, ct);
 
 
-            await this.ctx.SaveChangesAsync(ct);
             await tx.CommitAsync(ct);
+            await this.ctx.SaveChangesAsync(ct);
 
             return ot;
         }

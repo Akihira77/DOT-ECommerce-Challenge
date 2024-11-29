@@ -42,9 +42,9 @@ public class ProductService : IProductService
 
             pc.ProductCount += 1;
             this.ctx.ProductCategories.Update(pc);
-            await this.ctx.SaveChangesAsync(ct);
 
             await tx.CommitAsync(ct);
+            await this.ctx.SaveChangesAsync(ct);
             return p;
         }
         catch (System.Exception err)
@@ -69,9 +69,10 @@ public class ProductService : IProductService
 
             pc.ProductCount -= 1;
             this.ctx.ProductCategories.Update(pc);
-            var result = await this.ctx.SaveChangesAsync(ct);
 
             await tx.CommitAsync(ct);
+
+            var result = await this.ctx.SaveChangesAsync(ct);
             return result > 0;
         }
         catch (System.Exception err)

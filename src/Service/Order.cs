@@ -83,8 +83,8 @@ public class OrderService : IOrderService
             await this.ctx.OrderItems.AddRangeAsync(o.OrderItems, ct);
             await this.ctx.Database.ExecuteSqlInterpolatedAsync(
                 $"DELETE FROM CustomerCarts WHERE CustomerId = {c.id}", ct);
-            await this.ctx.SaveChangesAsync(ct);
             await tx.CommitAsync(ct);
+            await this.ctx.SaveChangesAsync(ct);
 
             this.emailBackgroundService.QueueEmail(new sendEmailData(c.email, $"Your Order with id: [{o.Id}]", $"Your order has been created. Please check http://localhost:8000/orders/{o.Id}"));
             return o;
@@ -272,8 +272,8 @@ public class OrderService : IOrderService
 
             this.emailBackgroundService.QueueEmail(new sendEmailData(o.Customer!.Email, "Order Status Change", $"Your has change the status. Please check http://localhost:8000/orders"));
 
-            await this.ctx.SaveChangesAsync(ct);
             await tx.CommitAsync(ct);
+            await this.ctx.SaveChangesAsync(ct);
             this.logger.LogInformation($"{nameof(UpdateOrderStatus)}: Transaction committed");
             return o;
         }
